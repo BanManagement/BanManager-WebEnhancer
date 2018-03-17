@@ -1,0 +1,16 @@
+main: me.confuser.banmanager.webenhancer.WebEnhancer
+name: BanManager-WebEnhancer
+version: ${project.version}
+authors: [ confuser ]
+website: http://dev.bukkit.org/bukkit-plugins/ban-management/
+description: ${project.description}
+depend: [ BanManager ]
+commands:
+  bmpin:
+    description: Display a valid login pin
+    usage: "/bmpin"
+    permission: bm.command.bmpin
+permissions:
+  bm.command.bmpin:
+    description: Generates a login pin
+    default: op

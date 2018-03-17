@@ -1,0 +1,20 @@
+*.class
+.settings
+.classpath
+bin
+.project
+.idea
+*.iml
+.externalToolBuilders
+build.xml
+.DS_Store
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# Web Interface Files #
+banmanagement/settings.php
+cache
+/target
