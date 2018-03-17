@@ -2,7 +2,7 @@ BanManager-WebEnhancer
 ======================
 The Java based plugin for Bukkit, compliments BanManager-WebUI
 
-Requires Spigot 1.8+ and BanManager v5.8.0+
+Requires Spigot 1.12+ and BanManager v5.8.0+
 
 Download - https://ci.frostcast.net/job/BanManager-WebEnhancer/
 
