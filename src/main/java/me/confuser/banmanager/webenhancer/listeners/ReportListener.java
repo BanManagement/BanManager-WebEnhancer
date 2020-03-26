@@ -12,6 +12,8 @@ import com.j256.ormlite.stmt.DeleteBuilder;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import me.confuser.banmanager.bukkit.api.events.PlayerReportDeletedEvent;
+import me.confuser.banmanager.bukkit.api.events.PlayerReportedEvent;
 import me.confuser.banmanager.common.api.BmAPI;
 import me.confuser.banmanager.common.data.PlayerData;
 import me.confuser.banmanager.common.data.PlayerReportData;
