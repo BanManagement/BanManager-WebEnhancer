@@ -1,32 +1,30 @@
 package me.confuser.banmanager.webenhancer.data;
 
-import lombok.Getter;
-import lombok.Setter;
-import me.confuser.banmanager.data.PlayerReportData;
-import me.confuser.banmanager.internal.ormlite.field.DatabaseField;
-import me.confuser.banmanager.internal.ormlite.table.DatabaseTable;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import me.confuser.banmanager.common.data.PlayerReportData;
+
+@Getter
 @DatabaseTable
+@NoArgsConstructor
+@RequiredArgsConstructor
 public class ReportLogData {
 
-  @Getter
   @Setter
   @DatabaseField(generatedId = true)
   private int id;
 
-  @Getter
+  @NonNull
   @DatabaseField(index = true, canBeNull = false, foreign = true, foreignAutoRefresh = true)
   private PlayerReportData report;
 
-  @Getter
+  @NonNull
   @DatabaseField(index = true, canBeNull = false, foreign = true, foreignAutoRefresh = true)
   private LogData log;
-
-  ReportLogData() {
-  }
-
-  public ReportLogData(PlayerReportData report, LogData log) {
-    this.report = report;
-    this.log = log;
-  }
 }

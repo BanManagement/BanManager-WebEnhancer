@@ -1,9 +1,14 @@
 package me.confuser.banmanager.webenhancer;
 
+import java.sql.SQLException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Logger;
+import org.bukkit.plugin.java.JavaPlugin;
+
 import lombok.Getter;
-import me.confuser.banmanager.BmAPI;
-import me.confuser.banmanager.bukkitutil.BukkitPlugin;
-import me.confuser.banmanager.runnables.Runner;
+import me.confuser.banmanager.common.api.BmAPI;
+import me.confuser.banmanager.common.runnables.Runner;
 import me.confuser.banmanager.webenhancer.commands.PinCommand;
 import me.confuser.banmanager.webenhancer.configs.DefaultConfig;
 import me.confuser.banmanager.webenhancer.listeners.LogServerAppender;
@@ -12,106 +17,102 @@ import me.confuser.banmanager.webenhancer.runnables.ExpiresSync;
 import me.confuser.banmanager.webenhancer.storage.LogStorage;
 import me.confuser.banmanager.webenhancer.storage.PlayerPinStorage;
 import me.confuser.banmanager.webenhancer.storage.ReportLogStorage;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Logger;
 
-import java.io.IOException;
-import java.sql.SQLException;
+public class WebEnhancer extends JavaPlugin {
 
-public class WebEnhancer extends BukkitPlugin {
+    @Getter
+    private static WebEnhancer plugin;
 
-  @Getter
-  private static WebEnhancer plugin;
+    @Getter
+    private DefaultConfig configuration;
+    @Getter
+    private LogServerAppender appender;
 
-  @Getter
-  private DefaultConfig configuration;
-  @Getter
-  private LogServerAppender appender;
+    @Getter
+    private LogStorage logStorage;
+    @Getter
+    private ReportLogStorage reportLogStorage;
+    @Getter
+    private PlayerPinStorage playerPinStorage;
 
-  @Getter
-  private LogStorage logStorage;
-  @Getter
-  private ReportLogStorage reportLogStorage;
-  @Getter
-  private PlayerPinStorage playerPinStorage;
+    @Getter
+    private Runner syncRunner;
 
-  @Getter
-  private Runner syncRunner;
+    @Override
+    public void onEnable() {
+        plugin = this;
 
-  public void onEnable() {
-    plugin = this;
+        setupConfigs();
+        try {
+            setupStorage();
+        } catch (SQLException e) {
+            getLogger().warning("An error occurred attempting to enable the plugin");
+            plugin.getPluginLoader().disablePlugin(this);
+            e.printStackTrace();
+            return;
+        }
 
-    setupConfigs();
-    try {
-      setupStorage();
-    } catch (SQLException e) {
-      getLogger().warning("An error occurred attempting to enable the plugin");
-      plugin.getPluginLoader().disablePlugin(this);
-      e.printStackTrace();
-      return;
+        setupListeners();
+        setupCommands();
+//        setupRunnables();
     }
 
-    setupListeners();
-    setupCommands();
-//    setupRunnables();
-  }
+    public void setupConfigs() {
+        configuration = new DefaultConfig();
+        configuration.load();
+    }
 
-  public void onDisable() {
-    getServer().getScheduler().cancelTasks(plugin);
+    public void setupStorage() throws SQLException {
+        logStorage = new LogStorage(BmAPI.getLocalConnection());
+        reportLogStorage = new ReportLogStorage(BmAPI.getLocalConnection());
+        playerPinStorage = new PlayerPinStorage(BmAPI.getLocalConnection());
+    }
 
-    if (appender == null) return;
+    public void setupListeners() {
+        appender = new LogServerAppender(plugin);
 
-    Logger log = (Logger) LogManager.getRootLogger();
-    log.removeAppender(appender);
-  }
+        Logger log = (Logger) LogManager.getRootLogger();
+        log.addAppender(appender);
 
-  @Override
-  public String getPluginFriendlyName() {
-    return "BanManager-WebEnhancer";
-  }
+        new ReportListener(this).register();
+    }
 
-  @Override
-  public String getPermissionBase() {
-    return "bm";
-  }
+    public void setupCommands() {
+        new PinCommand(this, playerPinStorage);
+    }
 
-  @Override
-  public void setupConfigs() {
-    configuration = new DefaultConfig();
-    configuration.load();
-  }
+    @Override
+    public void onDisable() {
+        getServer().getScheduler().cancelTasks(plugin);
 
-  public void setupStorage() throws SQLException {
-    logStorage = new LogStorage(BmAPI.getLocalConnection());
-    reportLogStorage = new ReportLogStorage(BmAPI.getLocalConnection());
-    playerPinStorage = new PlayerPinStorage(BmAPI.getLocalConnection());
-  }
+        if (appender == null)
+            return;
 
-  @Override
-  public void setupCommands() {
-    new PinCommand().register();
-  }
+        Logger log = (Logger) LogManager.getRootLogger();
+        log.removeAppender(appender);
+    }
 
-  @Override
-  public void setupListeners() {
-    appender = new LogServerAppender(plugin);
+    /** never called */
+    public String getPluginFriendlyName() {
+        return "BanManager-WebEnhancer";
+    }
 
-    Logger log = (Logger) LogManager.getRootLogger();
-    log.addAppender(appender);
+    /** never called */
+    public String getPermissionBase() {
+        return "bm";
+    }
 
-    new ReportListener().register();
-  }
+    /** never called */
+    public void setupRunnables() {
+        syncRunner = new Runner(new ExpiresSync(playerPinStorage));
 
-  @Override
-  public void setupRunnables() {
-    syncRunner = new Runner(new ExpiresSync());
+        setupAsyncRunnable(10L, syncRunner);
+    }
 
-    setupAsyncRunnable(10L, syncRunner);
-  }
+    private void setupAsyncRunnable(final long length, final Runnable runnable) {
+        if (length <= 0)
+            return;
 
-  private void setupAsyncRunnable(long length, Runnable runnable) {
-    if (length <= 0) return;
-
-    getServer().getScheduler().runTaskTimerAsynchronously(plugin, runnable, length, length);
-  }
+        getServer().getScheduler().runTaskTimerAsynchronously(plugin, runnable, length, length);
+    }
 }

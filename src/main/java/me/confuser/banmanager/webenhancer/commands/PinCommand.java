@@ -1,63 +1,66 @@
 package me.confuser.banmanager.webenhancer.commands;
 
-import me.confuser.banmanager.BanManager;
-import me.confuser.banmanager.bukkitutil.Message;
-import me.confuser.banmanager.bukkitutil.commands.BukkitCommand;
-import me.confuser.banmanager.data.PlayerData;
-import me.confuser.banmanager.util.DateUtils;
-import me.confuser.banmanager.util.UUIDUtils;
-import me.confuser.banmanager.webenhancer.WebEnhancer;
-import me.confuser.banmanager.webenhancer.data.PlayerPinData;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-
 import java.sql.SQLException;
 
-public class PinCommand extends BukkitCommand<WebEnhancer> {
+import org.bukkit.command.CommandSender;
+import org.bukkit.command.defaults.BukkitCommand;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
-  public PinCommand() {
-    super("bmpin");
-  }
+import lombok.NonNull;
+import me.confuser.banmanager.common.BanManagerPlugin;
+import me.confuser.banmanager.common.data.PlayerData;
+import me.confuser.banmanager.common.util.DateUtils;
+import me.confuser.banmanager.common.util.Message;
+import me.confuser.banmanager.common.util.UUIDUtils;
+import me.confuser.banmanager.webenhancer.data.PlayerPinData;
+import me.confuser.banmanager.webenhancer.storage.PlayerPinStorage;
 
-  @Override
-  public boolean onCommand(final CommandSender sender, Command command, String commandName, final String[] args) {
-    // Disallow console pins
-    if (!(sender instanceof Player)) return false;
-    if (args.length != 0) return false;
+public class PinCommand extends BukkitCommand {
+    @NonNull private final JavaPlugin plugin;
+    @NonNull private final PlayerPinStorage pinStorage;
 
-    plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+    public PinCommand(final JavaPlugin plugin, final PlayerPinStorage pinStorage) {
+        super("bmpin");
+        this.plugin = plugin;
+        this.pinStorage = pinStorage;
+    }
 
-      @Override
-      public void run() {
-        PlayerData player = null;
+    @Override public boolean execute(
+            final CommandSender sender, final String commandLabel,
+            final String[] args
+    ) {
+        // Disallow console pins
+        if (!(sender instanceof Player))
+            return false;
+        if (args.length != 0)
+            return false;
 
-        try {
-          player = BanManager.getPlugin().getPlayerStorage().queryForId(UUIDUtils.toBytes((Player) sender));
-        } catch (SQLException e) {
-          sender.sendMessage(Message.get("sender.error.exception").toString());
-          e.printStackTrace();
-        }
+        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+            PlayerData player = null;
+            try {
+                player = BanManagerPlugin.getInstance().getPlayerStorage()
+                        .queryForId(UUIDUtils.toBytes(((Player) sender).getUniqueId()));
+            } catch (SQLException e) {
+                sender.sendMessage(Message.get("sender.error.exception").toString());
+                e.printStackTrace();
+            }
 
-        PlayerPinData pin = plugin.getPlayerPinStorage().getValidPin(player);
+            final PlayerPinData pin = pinStorage.getValidPin(player);
 
-        if (pin == null) {
-          sender.sendMessage(Message.get("sender.error.exception").toString());
-          return;
-        }
+            if (pin == null) {
+                sender.sendMessage(Message.get("sender.error.exception").toString());
+                return;
+            }
 
-        Message.get("pin.notify")
-               .set("pin", pin.getGeneratedPin())
-               .set("expires", DateUtils.getDifferenceFormat(pin.getExpires()))
-               .sendTo(sender);
+            final String notifyMessage = Message.get("pin.notify").set("pin", pin.getGeneratedPin())
+                    .set("expires", DateUtils.getDifferenceFormat(pin.getExpires())).toString();
+            sender.sendMessage(notifyMessage);
 
-        Message.get("pin.pin")
-               .set("pin", pin.getGeneratedPin())
-               .sendTo(sender);
-      }
+            final String pinMessage = Message.get("pin.pin").set("pin", pin.getGeneratedPin()).toString();
+            sender.sendMessage(pinMessage);
+        });
 
-    });
-
-    return true;
-  }
+        return true;
+    }
 }

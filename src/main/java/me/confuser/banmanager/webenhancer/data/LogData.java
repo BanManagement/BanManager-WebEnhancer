@@ -1,32 +1,32 @@
 package me.confuser.banmanager.webenhancer.data;
 
-import lombok.Getter;
-import lombok.Setter;
-import me.confuser.banmanager.internal.ormlite.field.DataType;
-import me.confuser.banmanager.internal.ormlite.field.DatabaseField;
-import me.confuser.banmanager.internal.ormlite.table.DatabaseTable;
+import java.util.concurrent.TimeUnit;
 
+import com.j256.ormlite.field.DataType;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
 @DatabaseTable
+@NoArgsConstructor
 public class LogData {
 
-  @Getter
-  @Setter
-  @DatabaseField(generatedId = true)
-  private int id;
+    @Setter
+    @DatabaseField(generatedId = true)
+    private int id;
 
-  @Getter
-  @DatabaseField(canBeNull = false, dataType = DataType.LONG_STRING)
-  private String message;
+    @DatabaseField(canBeNull = false, dataType = DataType.LONG_STRING)
+    private String message;
 
-  @DatabaseField(index = true, columnDefinition = "INT(10) NOT NULL")
-  @Getter
-  private long created = System.currentTimeMillis() / 1000L;
+    @DatabaseField(index = true, columnDefinition = "INT(10) NOT NULL")
+    private long created = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 
-  LogData() {
-  }
-
-  public LogData(String message, long created) {
-    this.message = message;
-    this.created = created;
-  }
+    public LogData(final String message, final long created) {
+        this.message = message;
+        this.created = created;
+    }
 }

@@ -61,7 +61,7 @@
         </repository>
         <repository>
             <id>confuser-repo</id>
-            <url>http://ci.frostcast.net/plugin/repository/everything</url>
+            <url>http://ci.frostcast.net/plugin/repository/everything/</url>
         </repository>
         <repository>
             <id>Plugin Metrics</id>
@@ -75,11 +75,22 @@
             <version>1.12-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
+        <!-- not available anymore -->
+        <!-- <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>craftbukkit</artifactId>
             <version>1.12-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <scope>provided</scope> 
+        </dependency> -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.13.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.13.1</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -88,10 +99,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>me.confuser</groupId>
-            <artifactId>BanManager</artifactId>
-            <version>5.14.0</version>
-            <scope>provided</scope>
+            <groupId>me.confuser.banmanager</groupId>
+            <artifactId>BanManagerCommon</artifactId>
+            <version>7.1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>de.mkammerer</groupId>
