@@ -60,7 +60,7 @@ public class LogServerAppender extends AbstractAppender {
 
         if (!ignore) {
             // Not thread safe, sync this if causes issues
-            queue.add(new LogData(message, TimeUnit.MICROSECONDS.toSeconds(log.getTimeMillis())));
+            queue.add(new LogData(message, TimeUnit.MILLISECONDS.toSeconds(log.getTimeMillis())));
         }
     }
 }
