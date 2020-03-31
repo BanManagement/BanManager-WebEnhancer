@@ -18,3 +18,9 @@ build.xml
 banmanagement/settings.php
 cache
 /target
+
+# Bash scripts #
+*.sh
+
+# Vim backup files #
+*~
