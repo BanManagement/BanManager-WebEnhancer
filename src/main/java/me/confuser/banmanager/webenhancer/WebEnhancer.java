@@ -1,5 +1,7 @@
 package me.confuser.banmanager.webenhancer;
 
+import java.io.File;
+import java.io.IOException;
 import java.sql.SQLException;
 
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +21,7 @@ import me.confuser.banmanager.webenhancer.storage.PlayerPinStorage;
 import me.confuser.banmanager.webenhancer.storage.ReportLogStorage;
 
 public class WebEnhancer extends JavaPlugin {
+    private static final String DEFAULT_CONFIG_FILENAME = "config.yml";
 
     @Getter
     private static WebEnhancer plugin;
@@ -38,8 +41,42 @@ public class WebEnhancer extends JavaPlugin {
     @Getter
     private Runner syncRunner;
 
+    private boolean hasLoadingErrors;
+
+    @Override
+    public void onLoad() {
+        hasLoadingErrors = ensureDefaultConfigExists();
+    }
+
+    /** @return <tt>true</tt> if config created and <tt>false</tt> otherwise. */
+    private boolean ensureDefaultConfigExists() {
+        final String currentMethodName = "ensureDefaultConfigExists";
+
+        File defaultConfigFile = new File(
+            super.getDataFolder().getAbsolutePath(),
+            DEFAULT_CONFIG_FILENAME
+        );
+
+        boolean isConfigurationFileCreated = false;
+        if (!defaultConfigFile.exists()) {
+            defaultConfigFile.getParentFile().mkdirs();
+            try {
+                defaultConfigFile.createNewFile();
+                isConfigurationFileCreated = true;
+            } catch (IOException ex) {
+                super.getLogger().throwing(getClass().getName(), currentMethodName, ex);
+            }
+        }
+        return isConfigurationFileCreated;
+    }
+
     @Override
     public void onEnable() {
+        if (hasLoadingErrors) {
+            super.getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         plugin = this;
 
         setupConfigs();
@@ -58,7 +95,7 @@ public class WebEnhancer extends JavaPlugin {
     }
 
     public void setupConfigs() {
-        configuration = new DefaultConfig();
+        configuration = new DefaultConfig(this);
         configuration.load();
     }
 

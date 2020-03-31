@@ -1,11 +1,12 @@
 package me.confuser.banmanager.webenhancer.configs;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
+import org.bukkit.plugin.java.JavaPlugin;
 
 import com.j256.ormlite.table.DatabaseTableConfig;
 
@@ -18,6 +19,8 @@ import me.confuser.banmanager.webenhancer.data.ReportLogData;
 
 @Getter
 public class DefaultConfig extends Config {
+    /** Default java yaml plugin configuration file is config.yml */
+    private static final String DEFAULT_CONFIG_FILENAME = "config.yml";
 
     private static HashMap<String, Class<?>> tables = new HashMap<String, Class<?>>() {
         private static final long serialVersionUID = -3410082528548603183L;
@@ -32,8 +35,23 @@ public class DefaultConfig extends Config {
     private List<String> contains;
     private int amount;
 
-    public DefaultConfig() {
-        super(new File("config.yml"), "config.yml", BanManagerPlugin.getInstance().getLogger());
+    /**
+     * Creates new default plugin configuraton representation and
+     *      saves default {@link #DEFAULT_CONFIG_FILENAME} file if
+     *      it doesn't exists.
+     *
+     * @param   pluginOwner     The plugin that owns this defaut
+     *      configuration file.
+     */
+    public DefaultConfig(final JavaPlugin pluginOwner) {
+        super(
+            pluginOwner.getDataFolder(),
+            DEFAULT_CONFIG_FILENAME,
+            BanManagerPlugin.getInstance().getLogger()
+        );
+
+        if (!super.file.exists())
+            pluginOwner.saveDefaultConfig();
     }
 
     @Override
