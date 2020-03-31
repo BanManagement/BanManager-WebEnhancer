@@ -65,7 +65,7 @@
         </repository>
         <repository>
             <id>confuser-repo</id>
-            <url>http://ci.frostcast.net/plugin/repository/everything/</url>
+            <url>https://ci.frostcast.net/plugin/repository/everything/</url>
         </repository>
         <repository>
             <id>Plugin Metrics</id>
