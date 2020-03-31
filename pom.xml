@@ -47,6 +47,10 @@
                                     <pattern>de.mkammerer</pattern>
                                     <shadedPattern>me.confuser.banmanager.webenhancer.internal.mkammerer</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.j256.ormlite</pattern>
+                                    <shadedPattern>me.confuser.banmanager.common.ormlite</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
