@@ -2,9 +2,9 @@ package me.confuser.banmanager.webenhancer.data;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.confuser.banmanager.data.PlayerReportData;
-import me.confuser.banmanager.internal.ormlite.field.DatabaseField;
-import me.confuser.banmanager.internal.ormlite.table.DatabaseTable;
+import me.confuser.banmanager.common.data.PlayerReportData;
+import me.confuser.banmanager.common.ormlite.field.DatabaseField;
+import me.confuser.banmanager.common.ormlite.table.DatabaseTable;
 
 @DatabaseTable
 public class ReportLogData {

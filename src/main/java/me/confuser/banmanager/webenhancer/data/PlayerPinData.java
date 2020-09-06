@@ -1,12 +1,12 @@
 package me.confuser.banmanager.webenhancer.data;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import lombok.Getter;
-import me.confuser.banmanager.data.PlayerData;
-import me.confuser.banmanager.internal.ormlite.field.DatabaseField;
-import me.confuser.banmanager.internal.ormlite.table.DatabaseTable;
-import me.confuser.banmanager.storage.mysql.ByteArray;
+import me.confuser.banmanager.common.data.PlayerData;
+import me.confuser.banmanager.common.storage.mysql.ByteArray;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -21,7 +21,7 @@ public class PlayerPinData {
   private int id;
 
   @DatabaseField(index = true, canBeNull = false, foreign = true, foreignAutoRefresh = true, uniqueIndex = false, persisterClass =
-          ByteArray.class, columnDefinition = "BINARY(16) NOT NULL")
+      ByteArray.class, columnDefinition = "BINARY(16) NOT NULL")
   @Getter
   private PlayerData player;
 

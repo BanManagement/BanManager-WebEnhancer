@@ -1,9 +1,8 @@
 package me.confuser.banmanager.webenhancer;
 
 import lombok.Getter;
-import me.confuser.banmanager.BmAPI;
-import me.confuser.banmanager.bukkitutil.BukkitPlugin;
-import me.confuser.banmanager.runnables.Runner;
+import me.confuser.banmanager.common.api.BmAPI;
+import me.confuser.banmanager.common.runnables.Runner;
 import me.confuser.banmanager.webenhancer.commands.PinCommand;
 import me.confuser.banmanager.webenhancer.configs.DefaultConfig;
 import me.confuser.banmanager.webenhancer.listeners.LogServerAppender;
@@ -14,11 +13,11 @@ import me.confuser.banmanager.webenhancer.storage.PlayerPinStorage;
 import me.confuser.banmanager.webenhancer.storage.ReportLogStorage;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.IOException;
 import java.sql.SQLException;
 
-public class WebEnhancer extends BukkitPlugin {
+public class WebEnhancer extends JavaPlugin {
 
   @Getter
   private static WebEnhancer plugin;
@@ -65,17 +64,6 @@ public class WebEnhancer extends BukkitPlugin {
     log.removeAppender(appender);
   }
 
-  @Override
-  public String getPluginFriendlyName() {
-    return "BanManager-WebEnhancer";
-  }
-
-  @Override
-  public String getPermissionBase() {
-    return "bm";
-  }
-
-  @Override
   public void setupConfigs() {
     configuration = new DefaultConfig();
     configuration.load();
@@ -87,12 +75,10 @@ public class WebEnhancer extends BukkitPlugin {
     playerPinStorage = new PlayerPinStorage(BmAPI.getLocalConnection());
   }
 
-  @Override
   public void setupCommands() {
     new PinCommand().register();
   }
 
-  @Override
   public void setupListeners() {
     appender = new LogServerAppender(plugin);
 
@@ -102,7 +88,6 @@ public class WebEnhancer extends BukkitPlugin {
     new ReportListener().register();
   }
 
-  @Override
   public void setupRunnables() {
     syncRunner = new Runner(new ExpiresSync());
 

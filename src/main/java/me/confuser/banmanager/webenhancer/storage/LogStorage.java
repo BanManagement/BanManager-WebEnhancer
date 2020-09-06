@@ -1,11 +1,11 @@
 package me.confuser.banmanager.webenhancer.storage;
 
-import me.confuser.banmanager.BanManager;
-import me.confuser.banmanager.internal.ormlite.dao.BaseDaoImpl;
-import me.confuser.banmanager.internal.ormlite.stmt.QueryBuilder;
-import me.confuser.banmanager.internal.ormlite.support.ConnectionSource;
-import me.confuser.banmanager.internal.ormlite.table.DatabaseTableConfig;
-import me.confuser.banmanager.internal.ormlite.table.TableUtils;
+import me.confuser.banmanager.common.BanManagerPlugin;
+import me.confuser.banmanager.common.ormlite.dao.BaseDaoImpl;
+import me.confuser.banmanager.common.ormlite.stmt.QueryBuilder;
+import me.confuser.banmanager.common.ormlite.support.ConnectionSource;
+import me.confuser.banmanager.common.ormlite.table.DatabaseTableConfig;
+import me.confuser.banmanager.common.ormlite.table.TableUtils;
 import me.confuser.banmanager.webenhancer.data.LogData;
 
 import java.sql.SQLException;
@@ -14,8 +14,8 @@ import java.util.List;
 public class LogStorage extends BaseDaoImpl<LogData, Integer> {
 
   public LogStorage(ConnectionSource connection) throws SQLException {
-    super(connection, (DatabaseTableConfig<LogData>) BanManager.getPlugin().getConfiguration().getLocalDb()
-                                                               .getTable("logs"));
+    super(connection, (DatabaseTableConfig<LogData>) BanManagerPlugin.getInstance().getConfig().getLocalDb()
+        .getTable("logs"));
 
     if (!isTableExists()) {
       TableUtils.createTable(connection, tableConfig);

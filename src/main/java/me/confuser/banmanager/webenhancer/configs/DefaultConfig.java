@@ -1,10 +1,9 @@
 package me.confuser.banmanager.webenhancer.configs;
 
 import lombok.Getter;
-import me.confuser.banmanager.BanManager;
-import me.confuser.banmanager.bukkitutil.configs.Config;
-import me.confuser.banmanager.internal.ormlite.table.DatabaseTableConfig;
-import me.confuser.banmanager.webenhancer.WebEnhancer;
+import me.confuser.banmanager.common.BanManagerPlugin;
+import me.confuser.banmanager.common.configs.Config;
+import me.confuser.banmanager.common.ormlite.table.DatabaseTableConfig;
 import me.confuser.banmanager.webenhancer.data.LogData;
 import me.confuser.banmanager.webenhancer.data.PlayerPinData;
 import me.confuser.banmanager.webenhancer.data.ReportLogData;
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-public class DefaultConfig extends Config<WebEnhancer> {
+public class DefaultConfig extends Config {
 
   private static HashMap<String, Class> tables = new HashMap<String, Class>() {{
     put("logs", LogData.class);
@@ -37,8 +36,8 @@ public class DefaultConfig extends Config<WebEnhancer> {
   @Override
   public void afterLoad() {
     for (Map.Entry<String, Class> entry : tables.entrySet()) {
-      BanManager.getPlugin().getConfiguration().getLocalDb()
-                .addTable(entry.getKey(), new DatabaseTableConfig<>(entry.getValue(), conf.getString("tables." + entry.getKey()), null));
+      BanManagerPlugin.getInstance().getConfig().getLocalDb()
+          .addTable(entry.getKey(), new DatabaseTableConfig<>(entry.getValue(), conf.getString("tables." + entry.getKey()), null));
     }
 
     contains = new ArrayList<>();

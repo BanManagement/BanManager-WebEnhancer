@@ -1,24 +1,23 @@
 package me.confuser.banmanager.webenhancer.listeners;
 
-import me.confuser.banmanager.BmAPI;
-import me.confuser.banmanager.bukkitutil.listeners.Listeners;
-import me.confuser.banmanager.data.PlayerData;
-import me.confuser.banmanager.data.PlayerReportData;
-import me.confuser.banmanager.events.PlayerReportDeletedEvent;
-import me.confuser.banmanager.events.PlayerReportedEvent;
-import me.confuser.banmanager.internal.ormlite.stmt.DeleteBuilder;
-import me.confuser.banmanager.webenhancer.WebEnhancer;
+import me.confuser.banmanager.bukkit.api.events.PlayerReportDeletedEvent;
+import me.confuser.banmanager.bukkit.api.events.PlayerReportedEvent;
+import me.confuser.banmanager.common.api.BmAPI;
+import me.confuser.banmanager.common.data.PlayerData;
+import me.confuser.banmanager.common.data.PlayerReportData;
+import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
 import me.confuser.banmanager.webenhancer.data.LogData;
 import me.confuser.banmanager.webenhancer.data.PlayerPinData;
 import me.confuser.banmanager.webenhancer.data.ReportLogData;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 import java.sql.SQLException;
 import java.util.Iterator;
 
-public class ReportListener extends Listeners<WebEnhancer> {
+public class ReportListener implements Listener {
 
   @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
   public void notifyOnReport(PlayerReportedEvent event) {

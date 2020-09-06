@@ -56,16 +56,12 @@
     </build>
     <repositories>
         <repository>
-            <id>bukkit-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
+            <id>spigot-repo</id>
+            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
         <repository>
             <id>confuser-repo</id>
             <url>http://ci.frostcast.net/plugin/repository/everything</url>
-        </repository>
-        <repository>
-            <id>Plugin Metrics</id>
-            <url>http://repo.mcstats.org/content/repositories/public</url>
         </repository>
     </repositories>
     <dependencies>
@@ -88,9 +84,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>me.confuser</groupId>
-            <artifactId>BanManager</artifactId>
-            <version>5.14.0</version>
+            <groupId>me.confuser.banmanager</groupId>
+            <artifactId>BanManagerBukkit</artifactId>
+            <version>7.0.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>

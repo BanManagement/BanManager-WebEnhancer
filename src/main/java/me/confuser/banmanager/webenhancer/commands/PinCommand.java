@@ -1,39 +1,36 @@
 package me.confuser.banmanager.webenhancer.commands;
 
-import me.confuser.banmanager.BanManager;
-import me.confuser.banmanager.bukkitutil.Message;
-import me.confuser.banmanager.bukkitutil.commands.BukkitCommand;
-import me.confuser.banmanager.data.PlayerData;
-import me.confuser.banmanager.util.DateUtils;
-import me.confuser.banmanager.util.UUIDUtils;
-import me.confuser.banmanager.webenhancer.WebEnhancer;
+import me.confuser.banmanager.common.BanManagerPlugin;
+import me.confuser.banmanager.common.commands.CommandParser;
+import me.confuser.banmanager.common.commands.CommonCommand;
+import me.confuser.banmanager.common.commands.CommonSender;
+import me.confuser.banmanager.common.data.PlayerData;
+import me.confuser.banmanager.common.util.DateUtils;
+import me.confuser.banmanager.common.util.Message;
 import me.confuser.banmanager.webenhancer.data.PlayerPinData;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import java.sql.SQLException;
 
-public class PinCommand extends BukkitCommand<WebEnhancer> {
+public class PinCommand extends CommonCommand {
 
   public PinCommand() {
-    super("bmpin");
+    super(BanManagerPlugin.getInstance(), "bmpin", false);
   }
 
   @Override
-  public boolean onCommand(final CommandSender sender, Command command, String commandName, final String[] args) {
+  public boolean onCommand(final CommonSender sender, CommandParser parser) {
     // Disallow console pins
-    if (!(sender instanceof Player)) return false;
-    if (args.length != 0) return false;
+    if (sender.isConsole()) return false;
+    if (parser.getArgs().length != 0) return false;
 
-    plugin.getServer().getScheduler().runTaskAsynchronously(plugin, new Runnable() {
+    getPlugin().getScheduler().runAsync(new Runnable() {
 
       @Override
       public void run() {
         PlayerData player = null;
 
         try {
-          player = BanManager.getPlugin().getPlayerStorage().queryForId(UUIDUtils.toBytes((Player) sender));
+          player = getPlugin().getPlayerStorage().queryForId(sender.getData().getId());
         } catch (SQLException e) {
           sender.sendMessage(Message.get("sender.error.exception").toString());
           e.printStackTrace();
@@ -47,13 +44,13 @@ public class PinCommand extends BukkitCommand<WebEnhancer> {
         }
 
         Message.get("pin.notify")
-               .set("pin", pin.getGeneratedPin())
-               .set("expires", DateUtils.getDifferenceFormat(pin.getExpires()))
-               .sendTo(sender);
+            .set("pin", pin.getGeneratedPin())
+            .set("expires", DateUtils.getDifferenceFormat(pin.getExpires()))
+            .sendTo(sender);
 
         Message.get("pin.pin")
-               .set("pin", pin.getGeneratedPin())
-               .sendTo(sender);
+            .set("pin", pin.getGeneratedPin())
+            .sendTo(sender);
       }
 
     });

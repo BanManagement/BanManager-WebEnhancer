@@ -1,8 +1,9 @@
 package me.confuser.banmanager.webenhancer.runnables;
 
-import me.confuser.banmanager.internal.ormlite.dao.CloseableIterator;
-import me.confuser.banmanager.runnables.BmRunnable;
-import me.confuser.banmanager.util.DateUtils;
+import com.j256.ormlite.dao.CloseableIterator;
+import me.confuser.banmanager.common.BanManagerPlugin;
+import me.confuser.banmanager.common.runnables.BmRunnable;
+import me.confuser.banmanager.common.util.DateUtils;
 import me.confuser.banmanager.webenhancer.WebEnhancer;
 import me.confuser.banmanager.webenhancer.data.PlayerPinData;
 import me.confuser.banmanager.webenhancer.storage.PlayerPinStorage;
@@ -13,7 +14,7 @@ public class ExpiresSync extends BmRunnable {
   private PlayerPinStorage pinStorage = WebEnhancer.getPlugin().getPlayerPinStorage();
 
   public ExpiresSync() {
-    super("pinCheck");
+    super(BanManagerPlugin.getInstance(), "pinCheck");
   }
 
   @Override
