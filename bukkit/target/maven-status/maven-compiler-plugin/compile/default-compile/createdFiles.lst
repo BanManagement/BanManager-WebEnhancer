@@ -1,0 +1,4 @@
+me/confuser/banmanager/webenhancer/bukkit/BukkitPlugin.class
+me/confuser/banmanager/webenhancer/bukkit/listeners/ReportListener.class
+me/confuser/banmanager/webenhancer/bukkit/BukkitMetrics.class
+me/confuser/banmanager/webenhancer/bukkit/listeners/LogServerAppender.class
