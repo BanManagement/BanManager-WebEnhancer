@@ -7,7 +7,7 @@
     <groupId>me.confuser.banmanager.webenhancer</groupId>
     <artifactId>BanManager-WebEnhancer</artifactId>
     <packaging>pom</packaging>
-    <version>7.0.0</version>
+    <version>7.5.0</version>
     <description>Functionality required for BanManger-WebUI</description>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
