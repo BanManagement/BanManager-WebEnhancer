@@ -39,4 +39,7 @@ tasks.named<ShadowJar>("jar") {
     exclude("META-INF/maven/**")
     exclude("org/intellij/**")
     exclude("org/jetbrains/**")
+    exclude("META-INF/*.SF")
+    exclude("META-INF/*.DSA")
+    exclude("META-INF/*.RSA")
 }

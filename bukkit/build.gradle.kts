@@ -69,6 +69,8 @@ tasks.named<ShadowJar>("shadowJar") {
     exclude("META-INF/maven/**")
     exclude("org/intellij/**")
     exclude("org/jetbrains/**")
+
+    minimize()
 }
 
 tasks.named("assemble").configure {
