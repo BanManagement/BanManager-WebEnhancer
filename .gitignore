@@ -1,20 +1,24 @@
-*.class
-.settings
+# Eclipse
 .classpath
-bin
 .project
+.settings/
+/bin
+eclipse
+
+# Intellij
 .idea
 *.iml
-.externalToolBuilders
-build.xml
+*.ipr
+*.iws
+
+# Mac
 .DS_Store
 
-# Package Files #
-*.jar
-*.war
-*.ear
-
-# Web Interface Files #
-banmanagement/settings.php
-cache
-/target
+# Gradle
+.gradle
+/local.properties
+bin
+build
+target
+/dependency-reduced-pom.xml
+*-private.sh
