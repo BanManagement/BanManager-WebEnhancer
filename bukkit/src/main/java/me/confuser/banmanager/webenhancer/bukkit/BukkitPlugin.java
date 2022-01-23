@@ -4,7 +4,7 @@ import lombok.Getter;
 import me.confuser.banmanager.bukkit.BukkitCommand;
 import me.confuser.banmanager.bukkit.BukkitScheduler;
 import me.confuser.banmanager.bukkit.PluginLogger;
-import me.confuser.banmanager.common.bstats.bukkit.Metrics;
+import org.bstats.bukkit.Metrics;
 import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;

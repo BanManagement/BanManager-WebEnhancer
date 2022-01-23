@@ -1,7 +1,7 @@
 package me.confuser.banmanager.webenhancer.common.storage;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
+import me.confuser.banmanager.webenhancer.common.google.guava.cache.Cache;
+import me.confuser.banmanager.webenhancer.common.google.guava.cache.CacheBuilder;
 import me.confuser.banmanager.common.data.PlayerWarnData;
 import me.confuser.banmanager.common.ormlite.dao.BaseDaoImpl;
 import me.confuser.banmanager.common.ormlite.support.ConnectionSource;

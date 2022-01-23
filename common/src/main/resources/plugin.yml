@@ -1,15 +1,22 @@
-main: ${plugin.main}
+main: me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin
 name: BanManager-WebEnhancer
-version: ${project.version}
+version: ${internalVersion}
 authors: [ confuser ]
 website: http://dev.bukkit.org/bukkit-plugins/ban-management/
-description: ${project.description}
+description: "An addon required by the BanManager WebUI"
 depend: [ BanManager ]
+
+# Mark the plugin as 1.13 compatible to avoid CB having to perform quite as much unnecessary
+# remapping when the plugin is loaded. Note that despite what this setting might otherwise imply,
+# BM is still compatible with pre-1.13 releases.
+api-version: 1.13
+
 commands:
   bmpin:
     description: Display a valid login pin
     usage: "/bmpin"
     permission: bm.command.bmpin
+
 permissions:
   bm.command.bmpin:
     description: Generates a login pin
