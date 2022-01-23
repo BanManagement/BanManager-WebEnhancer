@@ -67,7 +67,7 @@ public class ReportListener {
   @IsCancelled(Tristate.TRUE)
   @Listener(order = Order.BEFORE_POST)
   public void onDeny(final ClientConnectionEvent.Auth event) {
-    String msg = event.getMessage().toString();
+    String msg = TextSerializers.FORMATTING_CODE.serialize(event.getMessage());
 
     if (!msg.contains("[pin]")) return;
 

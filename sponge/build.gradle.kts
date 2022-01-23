@@ -101,10 +101,6 @@ tasks.named<ShadowJar>("shadowJar") {
         relocate("org.bstats", "me.confuser.banmanager.webenhancer.common.bstats") {
             include(dependency("org.bstats:"))
         }
-
-        // relocate("com.sun.jna", "me.confuser.banmanager.webenhancer.common.jna") {
-        //     include(dependency("net.java.dev.jna:"))
-        // }
     }
 
     exclude("GradleStart**")

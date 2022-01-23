@@ -3,8 +3,7 @@ package me.confuser.banmanager.webenhancer.common.data;
 import lombok.Setter;
 import me.confuser.banmanager.common.ormlite.field.DatabaseField;
 import me.confuser.banmanager.common.ormlite.table.DatabaseTable;
-import me.confuser.banmanager.webenhancer.common.argon2.Argon2;
-import me.confuser.banmanager.webenhancer.common.argon2.Argon2Factory;
+import me.confuser.banmanager.webenhancer.common.security.Argon2PasswordEncoder;
 import lombok.Getter;
 import me.confuser.banmanager.common.data.PlayerData;
 import me.confuser.banmanager.common.storage.mysql.ByteArray;
@@ -15,7 +14,7 @@ import java.security.SecureRandom;
 @DatabaseTable
 public class PlayerPinData {
 
-  private static Argon2 argon2 = Argon2Factory.create();
+  private static Argon2PasswordEncoder argon2 = new Argon2PasswordEncoder();
 
   @DatabaseField(generatedId = true)
   @Getter
@@ -47,7 +46,7 @@ public class PlayerPinData {
 
     this.generatedPin = SecureRandom.getInstance("SHA1PRNG").nextInt(900000) + 100000;
 
-    this.pin = argon2.hash(3, 4096, 1, String.valueOf(this.generatedPin));
+    this.pin = argon2.encode(String.valueOf(this.generatedPin));
     this.expires = (System.currentTimeMillis() / 1000L) + 300; // Valid for 5 minutes
   }
 

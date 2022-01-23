@@ -3,7 +3,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 applyLibrariesConfiguration()
 
 dependencies {
-    "shade"("de.mkammerer:argon2-jvm:2.11")
+    "shade"("org.bouncycastle:bcprov-jdk15on:1.70")
+    "shade"("org.bouncycastle:bcpkix-jdk15on:1.70")
     "shade"("com.google.guava:guava:17.0")
     "shade"("org.apache.logging.log4j:log4j-core:2.17.0")
     "shade"("org.apache.logging.log4j:log4j-api:2.17.0")
@@ -17,9 +18,9 @@ tasks.named<ShadowJar>("jar") {
     duplicatesStrategy = DuplicatesStrategy.WARN
 
     dependencies {
-        relocate("de.mkammerer.argon2", "me.confuser.banmanager.webenhancer.common.argon2") {
-            include(dependency("de.mkammerer:argon2-jvm"))
-            include(dependency("net.java.dev.jna:jna"))
+        relocate("org.bouncycastle", "me.confuser.banmanager.webenhancer.common.bouncycastle") {
+            include(dependency("org.bouncycastle:bcpkix-jdk15on"))
+            include(dependency("org.bouncycastle:bcprov-jdk15on"))
         }
 
         relocate("com.google.common", "me.confuser.banmanager.webenhancer.common.google.guava") {
@@ -28,6 +29,7 @@ tasks.named<ShadowJar>("jar") {
 
         include(dependency("org.apache.logging.log4j:log4j-core"))
         include(dependency("org.apache.logging.log4j:log4j-api"))
+        include(dependency("org.bouncycastle:bcpkix-jdk15on"))
     }
 
     exclude("GradleStart**")
