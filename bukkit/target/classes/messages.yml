@@ -1,4 +1,0 @@
-messages:
-  pin:
-    notify: '&6Your pin expires in [expires]'
-    pin: '[pin]'
