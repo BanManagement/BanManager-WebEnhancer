@@ -31,15 +31,15 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
     }
-    compileOnly("me.clip:placeholderapi:2.10.9")
     "shadeOnly"("org.bstats:bstats-bukkit:2.2.1")
 }
 
 tasks.named<Copy>("processResources") {
     val internalVersion = project.ext["internalVersion"]
     inputs.property("internalVersion", internalVersion)
+
     filesMatching("plugin.yml") {
-        expand("internalVersion" to internalVersion)
+        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.bukkit.BukkitPlugin")
     }
 }
 

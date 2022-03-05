@@ -81,7 +81,10 @@ java {
 tasks.named<Copy>("processResources") {
     val internalVersion = project.ext["internalVersion"]
     inputs.property("internalVersion", internalVersion)
-    expand("internalVersion" to internalVersion)
+
+    filesMatching("plugin.yml") {
+        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.sponge.SpongePlugin")
+    }
 }
 
 tasks.named<Jar>("jar") {

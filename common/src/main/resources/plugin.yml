@@ -1,4 +1,4 @@
-main: me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin
+main: "${mainPath}"
 name: BanManager-WebEnhancer
 version: ${internalVersion}
 authors: [ confuser ]
