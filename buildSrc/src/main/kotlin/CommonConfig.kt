@@ -11,7 +11,7 @@ fun Project.applyCommonConfiguration() {
         mavenLocal()
         mavenCentral()
         maven { url = uri("https://repo.codemc.io/repository/maven-public/") }
-        maven { url = uri("https://oss.sonatype.org/content/repositories/snapshots") }
+        maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots") }
         maven { url = uri("https://ci.frostcast.net/plugin/repository/everything") }
     }
 
