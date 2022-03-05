@@ -36,10 +36,11 @@ dependencies {
 
 tasks.named<Copy>("processResources") {
     val internalVersion = project.ext["internalVersion"]
+
     inputs.property("internalVersion", internalVersion)
 
     filesMatching("plugin.yml") {
-        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.bukkit.BukkitPlugin")
+        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin")
     }
 }
 
