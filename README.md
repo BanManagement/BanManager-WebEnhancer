@@ -48,7 +48,7 @@ To learn more about configuration, usage and features of BanManager, take a look
     ```yml
     ban:
       player:
-      disallowed: '&6You have been banned from this server for &4[reason] Use [pin]'
+        disallowed: '&6You have been banned from this server for &4[reason] Use [pin]'
     ```
 - Grant players the permission `bm.command.bmpin`
 - Restart the Minecraft server to enable the plugin
