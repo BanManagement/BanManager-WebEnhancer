@@ -80,6 +80,7 @@ java {
 
 tasks.named<Copy>("processResources") {
     val internalVersion = project.ext["internalVersion"]
+
     inputs.property("internalVersion", internalVersion)
 
     filesMatching("plugin.yml") {

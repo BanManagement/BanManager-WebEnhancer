@@ -20,6 +20,7 @@ import org.spongepowered.api.util.Tristate;
 
 import java.sql.SQLException;
 import java.util.Iterator;
+import java.util.Queue;
 
 public class ReportListener {
   private final SpongePlugin plugin;
@@ -32,18 +33,21 @@ public class ReportListener {
   @Listener(order = Order.POST)
   public void notifyOnReport(PlayerReportedEvent event) {
     PlayerReportData report = event.getReport();
+    Queue<LogData> queue = plugin.getAppender().getQueue();
 
-    Iterator<LogData> iterator = plugin.getAppender().getQueue().iterator();
+    synchronized (queue) {
+      Iterator<LogData> iterator = queue.iterator();
 
-    // Create many-to-many relationship
-    while (iterator.hasNext()) {
-      LogData log = iterator.next();
+      // Create many-to-many relationship
+      while (iterator.hasNext()) {
+        LogData log = iterator.next();
 
-      try {
-        plugin.getPlugin().getLogStorage().createIfNotExists(log);
-        plugin.getPlugin().getReportLogStorage().create(new ReportLogData(report, log));
-      } catch (SQLException e) {
-        e.printStackTrace();
+        try {
+          plugin.getPlugin().getLogStorage().createIfNotExists(log);
+          plugin.getPlugin().getReportLogStorage().create(new ReportLogData(report, log));
+        } catch (SQLException e) {
+          e.printStackTrace();
+        }
       }
     }
   }

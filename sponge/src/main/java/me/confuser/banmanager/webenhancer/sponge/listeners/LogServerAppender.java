@@ -1,6 +1,7 @@
 package me.confuser.banmanager.webenhancer.sponge.listeners;
 
 import com.google.common.collect.EvictingQueue;
+import com.google.common.collect.Queues;
 import lombok.Getter;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
@@ -9,19 +10,20 @@ import org.apache.logging.log4j.core.appender.AbstractAppender;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.util.regex.Pattern;
+import java.util.Queue;
 
 public class LogServerAppender extends AbstractAppender {
 
   private WebEnhancerPlugin plugin;
   @Getter
-  private EvictingQueue<LogData> queue;
+  private Queue<LogData> queue;
 
   public LogServerAppender(WebEnhancerPlugin plugin) {
     super("Log4JAppender", null,
             PatternLayout.newBuilder().withPattern("[%d{HH:mm:ss} %level]: %msg").build(), false);
 
     this.plugin = plugin;
-    queue = EvictingQueue.create(plugin.getConfig().getAmount());
+    this.queue = Queues.synchronizedQueue(EvictingQueue.create(plugin.getConfig().getAmount()));
   }
 
   @Override

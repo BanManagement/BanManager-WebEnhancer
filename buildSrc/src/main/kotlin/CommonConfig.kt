@@ -33,8 +33,4 @@ fun Project.applyCommonConfiguration() {
         the<JavaPluginExtension>().setSourceCompatibility("1.8")
         the<JavaPluginExtension>().setTargetCompatibility("1.8")
     }
-
-    configurations {
-        create("shade")
-    }
 }

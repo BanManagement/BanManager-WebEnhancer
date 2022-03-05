@@ -13,5 +13,3 @@ logger.lifecycle("""
 plugins {
     `maven-publish`
 }
-
-applyRootArtifactoryConfig()
