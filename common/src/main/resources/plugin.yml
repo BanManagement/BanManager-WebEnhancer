@@ -1,7 +1,7 @@
 main: "${mainPath}"
 name: BanManager-WebEnhancer
 version: ${internalVersion}
-authors: [ confuser ]
+author: confuser
 website: http://dev.bukkit.org/bukkit-plugins/ban-management/
 description: "An addon required by the BanManager WebUI"
 depend: [ BanManager ]

@@ -11,6 +11,7 @@ import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.bstats.bungeecord.Metrics;
+import me.confuser.banmanager.webenhancer.bungee.listeners.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -109,6 +110,7 @@ public class BungeePlugin extends Plugin {
   }
 
   public void setupListeners() {
+    registerEvent(new BanListener(this));
   }
 
   private void registerEvent(Listener listener) {
