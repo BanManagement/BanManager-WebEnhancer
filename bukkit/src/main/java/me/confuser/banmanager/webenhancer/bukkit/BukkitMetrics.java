@@ -1,6 +1,6 @@
 package me.confuser.banmanager.webenhancer.bukkit;
 
-import me.confuser.banmanager.common.bstats.bukkit.Metrics;
+import org.bstats.bukkit.Metrics;
 import me.confuser.banmanager.webenhancer.common.CommonMetrics;
 
 public class BukkitMetrics implements CommonMetrics {
