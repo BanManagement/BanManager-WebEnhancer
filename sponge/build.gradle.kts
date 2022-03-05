@@ -98,6 +98,10 @@ tasks.named<Jar>("jar") {
 tasks.named<ShadowJar>("shadowJar") {
     configurations = listOf(project.configurations["shadeOnly"], project.configurations["runtimeClasspath"])
 
+    archiveBaseName.set("BanManagerWebEnhancerSponge")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+
     dependencies {
         include(dependency(":BanManagerWebEnhancerCommon"))
         include(dependency(":BanManagerWebEnhancerLibs"))
