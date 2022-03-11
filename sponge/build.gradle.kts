@@ -45,7 +45,7 @@ sponge {
         dependency("banmanager") {
             loadOrder(PluginDependency.LoadOrder.AFTER)
             optional(false)
-            version("7.7.0-SNAPSHOT")
+            version("7.7.0")
         }
     }
 }
@@ -63,7 +63,7 @@ configurations {
 
 dependencies {
     compileOnly("org.spongepowered:spongeapi:7.2.0")
-    compileOnly("me.confuser.banmanager:BanManagerSponge:7.7.0-SNAPSHOT")
+    compileOnly("me.confuser.banmanager:BanManagerSponge:7.7.0")
 
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true

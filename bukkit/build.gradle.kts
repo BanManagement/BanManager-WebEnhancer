@@ -26,7 +26,7 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerBukkit:7.7.0-SNAPSHOT")
+    compileOnly("me.confuser.banmanager:BanManagerBukkit:7.7.0")
 
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
