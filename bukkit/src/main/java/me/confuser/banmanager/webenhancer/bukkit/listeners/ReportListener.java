@@ -3,17 +3,15 @@ package me.confuser.banmanager.webenhancer.bukkit.listeners;
 import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
 import me.confuser.banmanager.bukkit.api.events.PlayerReportDeletedEvent;
 import me.confuser.banmanager.bukkit.api.events.PlayerReportedEvent;
-import me.confuser.banmanager.common.api.BmAPI;
-import me.confuser.banmanager.common.data.PlayerData;
+import me.confuser.banmanager.bukkit.api.events.PlayerDeniedEvent;
 import me.confuser.banmanager.common.data.PlayerReportData;
 import me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
-import me.confuser.banmanager.webenhancer.common.data.PlayerPinData;
 import me.confuser.banmanager.webenhancer.common.data.ReportLogData;
+import me.confuser.banmanager.webenhancer.common.listeners.CommonPlayerDeniedListener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 
 import java.sql.SQLException;
 import java.util.Iterator;
@@ -21,9 +19,11 @@ import java.util.Queue;
 
 public class ReportListener implements Listener {
   private final BukkitPlugin plugin;
+  private CommonPlayerDeniedListener listener;
 
   public ReportListener(BukkitPlugin plugin) {
     this.plugin = plugin;
+    this.listener = new CommonPlayerDeniedListener(plugin.getPlugin());
   }
 
   @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -63,29 +63,8 @@ public class ReportListener implements Listener {
     }
   }
 
-  @EventHandler(priority = EventPriority.MONITOR)
-  public void onDeny(AsyncPlayerPreLoginEvent event) {
-    if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.KICK_BANNED) return;
-
-    String msg = event.getKickMessage();
-
-    if (!msg.contains("[pin]")) return;
-
-    PlayerData player;
-    try {
-      player = BmAPI.getPlayer(event.getUniqueId());
-    } catch (SQLException e) {
-      e.printStackTrace();
-      return;
-    }
-
-    PlayerPinData pin = plugin.getPlugin().getPlayerPinStorage().getValidPin(player);
-
-    if (pin != null) {
-      msg = msg.replace("[pin]", String.valueOf(pin.getGeneratedPin()));
-      event.setKickMessage(msg);
-    }
-
-
+  @EventHandler
+  public void onDeny(PlayerDeniedEvent event) {
+    listener.handlePin(event.getPlayer(), event.getMessage());
   }
 }
