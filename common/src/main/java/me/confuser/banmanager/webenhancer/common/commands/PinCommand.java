@@ -35,6 +35,7 @@ public class PinCommand extends CommonCommand {
       } catch (SQLException e) {
         sender.sendMessage(Message.get("sender.error.exception").toString());
         e.printStackTrace();
+        return;
       }
 
       PlayerPinData pin = plugin.getPlayerPinStorage().getValidPin(player);

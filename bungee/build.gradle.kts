@@ -22,7 +22,7 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerBungee:7.7.0")
+    compileOnly("me.confuser.banmanager:BanManagerBungee:7.8.0-SNAPSHOT")
 
     compileOnly("net.md-5:bungeecord-api:1.14-SNAPSHOT")
     "shadeOnly"("org.bstats:bstats-bungeecord:2.2.1")
