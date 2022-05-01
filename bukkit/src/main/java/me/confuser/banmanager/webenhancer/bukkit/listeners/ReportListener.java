@@ -4,6 +4,7 @@ import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
 import me.confuser.banmanager.bukkit.api.events.PlayerReportDeletedEvent;
 import me.confuser.banmanager.bukkit.api.events.PlayerReportedEvent;
 import me.confuser.banmanager.bukkit.api.events.PlayerDeniedEvent;
+import me.confuser.banmanager.bukkit.api.events.PluginReloadedEvent;
 import me.confuser.banmanager.common.data.PlayerReportData;
 import me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
@@ -66,5 +67,10 @@ public class ReportListener implements Listener {
   @EventHandler
   public void onDeny(PlayerDeniedEvent event) {
     listener.handlePin(event.getPlayer(), event.getMessage());
+  }
+
+  @EventHandler
+  public void onReload(PluginReloadedEvent event) {
+    plugin.getPlugin().setupConfigs();
   }
 }
