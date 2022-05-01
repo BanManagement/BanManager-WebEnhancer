@@ -4,6 +4,7 @@ import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
 import me.confuser.banmanager.sponge.api.events.PlayerReportDeletedEvent;
 import me.confuser.banmanager.sponge.api.events.PlayerReportedEvent;
 import me.confuser.banmanager.sponge.api.events.PlayerDeniedEvent;
+import me.confuser.banmanager.sponge.api.events.PluginReloadedEvent;
 import me.confuser.banmanager.common.data.PlayerReportData;
 import me.confuser.banmanager.webenhancer.sponge.SpongePlugin;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
@@ -69,5 +70,10 @@ public class ReportListener {
   @Listener(order = Order.BEFORE_POST)
   public void onDeny(final PlayerDeniedEvent event) {
     listener.handlePin(event.getPlayer(), event.getMessage());
+  }
+
+  @Listener
+  public void onReload(PluginReloadedEvent event) {
+    plugin.getPlugin().setupConfigs();
   }
 }
