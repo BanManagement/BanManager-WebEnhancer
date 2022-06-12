@@ -29,7 +29,7 @@ public class PlayerPinData {
   @Getter
   private String pin;
 
-  @DatabaseField(index = true, columnDefinition = "INT(10) NOT NULL")
+  @DatabaseField(index = true, canBeNull = false, columnDefinition = "BIGINT UNSIGNED NOT NULL")
   @Getter
   private long expires;
 
