@@ -18,7 +18,7 @@ public class LogData {
   @DatabaseField(canBeNull = false, dataType = DataType.LONG_STRING)
   private String message;
 
-  @DatabaseField(index = true, columnDefinition = "INT(10) NOT NULL")
+  @DatabaseField(index = true, canBeNull = false, columnDefinition = "BIGINT UNSIGNED NOT NULL")
   @Getter
   private long created = System.currentTimeMillis() / 1000L;
 

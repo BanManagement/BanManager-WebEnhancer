@@ -19,6 +19,11 @@ public class LogStorage extends BaseDaoImpl<LogData, Integer> {
 
     if (!isTableExists()) {
       TableUtils.createTable(connection, tableConfig);
+    } else {
+      try {
+        executeRawNoArgs("ALTER TABLE " + tableConfig.getTableName() + " CHANGE `created` `created` BIGINT UNSIGNED");
+      } catch (SQLException e) {
+      }
     }
   }
 

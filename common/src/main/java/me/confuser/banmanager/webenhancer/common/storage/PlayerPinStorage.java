@@ -30,6 +30,11 @@ public class PlayerPinStorage extends BaseDaoImpl<PlayerPinData, Integer> {
 
     if (!this.isTableExists()) {
       TableUtils.createTable(connection, tableConfig);
+    } else {
+      try {
+        executeRawNoArgs("ALTER TABLE " + tableConfig.getTableName() + " CHANGE `expires` `expires` BIGINT UNSIGNED");
+      } catch (SQLException e) {
+      }
     }
   }
 
