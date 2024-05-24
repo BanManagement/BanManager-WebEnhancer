@@ -97,7 +97,7 @@ public class BungeePlugin extends Plugin {
 
   private void setupCommands() {
     for (CommonCommand cmd : plugin.getCommands()) {
-      new BungeeCommand(cmd, this);
+      new me.confuser.banmanager.webenhancer.bungee.BungeeCommand(cmd, this);
     }
 
     getLogger().info("Registered commands");
