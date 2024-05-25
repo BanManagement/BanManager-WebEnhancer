@@ -7,6 +7,7 @@ import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
+import me.confuser.banmanager.webenhancer.bungee.BungeeCommand;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
@@ -15,7 +16,6 @@ import me.confuser.banmanager.webenhancer.bungee.listeners.*;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.concurrent.TimeUnit;
 
 public class BungeePlugin extends Plugin {
   @Getter
@@ -97,7 +97,7 @@ public class BungeePlugin extends Plugin {
 
   private void setupCommands() {
     for (CommonCommand cmd : plugin.getCommands()) {
-      new me.confuser.banmanager.webenhancer.bungee.BungeeCommand(cmd, this);
+      new BungeeCommand(cmd, this);
     }
 
     getLogger().info("Registered commands");
