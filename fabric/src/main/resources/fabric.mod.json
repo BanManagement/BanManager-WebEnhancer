@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "id": "banmanager-webenhancer",
+  "version": "${internalVersion}",
+  "name": "BanManager-WebEnhancer",
+  "description": "An addon required by the BanManager WebUI",
+  "authors": [
+    {
+      "name": "confuser",
+      "contact": {
+        "sources": "https://github.com/confuser",
+        "homepage": "https://banmanagement.com"
+      }
+    }
+  ],
+  "contact": {
+    "homepage": "https://banmanagement.com",
+    "sources": "https://github.com/BanManagement/BanManager-WebEnhancer",
+    "issues": "https://github.com/BanManagement/BanManager-WebEnhancer/issues"
+  },
+  "icon": "assets/banmanager-webenhancer/icon.png",
+  "license": "MIT",
+  "environment": "server",
+  "entrypoints": {
+    "server": [
+      "${mainPath}"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.14.0",
+    "fabric-api-base": "*",
+    "${commandApiModule}": "*",
+    "fabric-lifecycle-events-v1": "*",
+    "banmanager": "*",
+    "minecraft": "${minecraftVersion}"
+  }
+}

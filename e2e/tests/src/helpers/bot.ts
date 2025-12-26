@@ -1,0 +1,198 @@
+import mineflayer, { Bot } from 'mineflayer'
+
+const SERVER_HOST = process.env.SERVER_HOST ?? 'localhost'
+const SERVER_PORT = parseInt(process.env.SERVER_PORT ?? '25565', 10)
+
+export interface ChatMessage {
+  username: string
+  message: string
+  timestamp: number
+}
+
+export interface SystemMessage {
+  message: string
+  timestamp: number
+}
+
+export class TestBot {
+  private bot: Bot | null = null
+  private chatMessages: ChatMessage[] = []
+  private systemMessages: SystemMessage[] = []
+  private readonly username: string
+
+  constructor (username: string) {
+    this.username = username
+  }
+
+  async connect (): Promise<void> {
+    return await new Promise((resolve, reject) => {
+      console.log(`Connecting bot ${this.username} to ${SERVER_HOST}:${SERVER_PORT}`)
+
+      this.bot = mineflayer.createBot({
+        host: SERVER_HOST,
+        port: SERVER_PORT,
+        username: this.username,
+        auth: 'offline', // Offline mode for testing
+        hideErrors: false
+      })
+
+      const timeout = setTimeout(() => {
+        reject(new Error('Bot connection timeout'))
+      }, 30000)
+
+      this.bot.once('spawn', () => {
+        clearTimeout(timeout)
+        console.log(`Bot ${this.username} spawned successfully`)
+        resolve()
+      })
+
+      this.bot.once('error', (err) => {
+        clearTimeout(timeout)
+        reject(err)
+      })
+
+      this.bot.once('kicked', (reason) => {
+        clearTimeout(timeout)
+        console.log(`Bot ${this.username} was kicked: ${String(reason)}`)
+        reject(new Error(`Bot ${this.username} was kicked: ${String(reason)}`))
+      })
+
+      // Listen for chat messages
+      this.bot.on('chat', (username, message) => {
+        this.chatMessages.push({
+          username,
+          message,
+          timestamp: Date.now()
+        })
+        console.log(`Chat: <${username}> ${message}`)
+      })
+
+      // Listen for system messages (including mute notifications, denied notifications)
+      this.bot.on('message', (jsonMsg) => {
+        const text = jsonMsg.toString()
+        if (text.trim() !== '') {
+          this.systemMessages.push({
+            message: text,
+            timestamp: Date.now()
+          })
+          console.log(`[${this.username}] System: ${text}`)
+        }
+      })
+    })
+  }
+
+  async disconnect (): Promise<void> {
+    if (this.bot != null) {
+      const bot = this.bot
+      this.bot = null
+
+      await new Promise<void>((resolve) => {
+        // Set a timeout in case 'end' never fires
+        const timeout = setTimeout(() => {
+          resolve()
+        }, 2000)
+
+        bot.once('end', () => {
+          clearTimeout(timeout)
+          resolve()
+        })
+
+        // Remove listeners to prevent callbacks during shutdown
+        bot.removeAllListeners('chat')
+        bot.removeAllListeners('message')
+        bot.removeAllListeners('error')
+
+        // Quit the bot
+        bot.quit()
+      })
+
+      // Extra delay to let any remaining timers clear
+      await this.sleep(200)
+
+      console.log(`Bot ${this.username} disconnected`)
+    }
+  }
+
+  async sendChat (message: string): Promise<void> {
+    if (this.bot == null) {
+      throw new Error('Bot not connected')
+    }
+    console.log(`Bot ${this.username} sending: ${message}`)
+    this.bot.chat(message)
+  }
+
+  clearChatHistory (): void {
+    this.chatMessages = []
+  }
+
+  getChatMessages (): ChatMessage[] {
+    return [...this.chatMessages]
+  }
+
+  clearSystemMessages (): void {
+    this.systemMessages = []
+  }
+
+  getSystemMessages (): SystemMessage[] {
+    return [...this.systemMessages]
+  }
+
+  /**
+   * Wait for a system message containing specific text
+   */
+  async waitForSystemMessage (
+    containsText: string,
+    timeoutMs: number = 5000
+  ): Promise<SystemMessage> {
+    const startTime = Date.now()
+    const startIndex = this.systemMessages.length
+
+    return await new Promise((resolve, reject) => {
+      const checkInterval = setInterval(() => {
+        for (let i = startIndex; i < this.systemMessages.length; i++) {
+          const msg = this.systemMessages[i]
+          if (msg.message.includes(containsText)) {
+            clearInterval(checkInterval)
+            resolve(msg)
+            return
+          }
+        }
+
+        if (Date.now() - startTime > timeoutMs) {
+          clearInterval(checkInterval)
+          reject(new Error(`Timeout waiting for system message containing "${containsText}"`))
+        }
+      }, 100)
+    })
+  }
+
+  /**
+   * Assert that no system message containing the text is received within a timeout period
+   */
+  async expectNoSystemMessage (containsText: string, timeoutMs: number = 3000): Promise<void> {
+    const startIndex = this.systemMessages.length
+
+    await this.sleep(timeoutMs)
+
+    for (let i = startIndex; i < this.systemMessages.length; i++) {
+      const msg = this.systemMessages[i]
+      if (msg.message.includes(containsText)) {
+        throw new Error(`Unexpected system message containing "${containsText}": "${msg.message}"`)
+      }
+    }
+  }
+
+  private async sleep (ms: number): Promise<void> {
+    return await new Promise((resolve) => setTimeout(resolve, ms))
+  }
+
+  isConnected (): boolean {
+    return this.bot !== null
+  }
+}
+
+export async function createBot (username: string): Promise<TestBot> {
+  const bot = new TestBot(username)
+  await bot.connect()
+  return bot
+}

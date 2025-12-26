@@ -10,7 +10,7 @@ applyShadowConfiguration()
 repositories {
     maven {
         name = "paper"
-        url = uri("https://papermc.io/repo/repository/maven-public/")
+        url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven {
         name = "jitpack"
@@ -26,7 +26,7 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerBukkit:7.8.0-SNAPSHOT")
+    compileOnly("me.confuser.banmanager:BanManagerBukkit:7.10.0-SNAPSHOT")
 
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
