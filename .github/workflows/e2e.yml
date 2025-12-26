@@ -20,14 +20,17 @@ jobs:
         include:
           # Fabric 1.20.1 (legacy modded, Java 17)
           - mc_version: "1.20.1"
+            task_suffix: "1_20_1"
             java_image: "java17"
             fabric_loader: "0.16.10"
           # Fabric 1.21.1 (stable 1.21, Java 21)
           - mc_version: "1.21.1"
+            task_suffix: "1_21_1"
             java_image: "java21"
             fabric_loader: "0.16.9"
           # Fabric 1.21.4 (current latest, Java 21)
           - mc_version: "1.21.4"
+            task_suffix: "1_21_4"
             java_image: "java21"
             fabric_loader: "0.16.9"
 
@@ -118,7 +121,7 @@ jobs:
         run: ./gradlew :fabric:${{ matrix.mc_version }}:remapJar --build-cache
 
       - name: Run E2E tests
-        run: ./gradlew :BanManagerWebEnhancerE2E:testFabric_${{ matrix.mc_version | replace('.', '_') }}
+        run: ./gradlew :BanManagerWebEnhancerE2E:testFabric_${{ matrix.task_suffix }}
         timeout-minutes: 15
         env:
           MC_VERSION: ${{ matrix.mc_version }}
