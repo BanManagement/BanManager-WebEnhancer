@@ -13,8 +13,8 @@ repositories {
         url = uri("https://repo.papermc.io/repository/maven-public/")
     }
     maven {
-        name = "sonatype-snapshots"
-        url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
+        name = "central-portal-snapshots"
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }
 

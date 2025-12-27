@@ -18,6 +18,8 @@ jobs:
     strategy:
       matrix:
         include:
+          - storageType: mariadb
+            java: 21
           - storageType: h2
             java: 21
 
@@ -47,20 +49,6 @@ jobs:
             .gradle/loom-cache
           key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-loom-
-
-      - name: Checkout BanManager
-        uses: actions/checkout@v4
-        with:
-          repository: BanManagement/BanManager
-          path: BanManager
-          ref: master
-
-      - name: Publish BanManager to mavenLocal
-        working-directory: BanManager
-        run: |
-          ./gradlew :BanManagerCommon:publishToMavenLocal :BanManagerLibs:publishToMavenLocal \
-            :fabric:1.20.1:publishToMavenLocal :fabric:1.21.1:publishToMavenLocal :fabric:1.21.4:publishToMavenLocal \
-            --build-cache
 
       - name: Execute Gradle build
         env:

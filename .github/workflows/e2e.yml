@@ -62,12 +62,6 @@ jobs:
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      - name: Publish BanManager to mavenLocal
-        working-directory: BanManager
-        run: |
-          ./gradlew :BanManagerCommon:publishToMavenLocal :BanManagerLibs:publishToMavenLocal \
-            :BanManagerBukkit:publishToMavenLocal --build-cache
-
       - name: Build BanManager Bukkit
         working-directory: BanManager
         run: ./gradlew :BanManagerBukkit:shadowJar --build-cache
@@ -180,12 +174,6 @@ jobs:
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
-
-      - name: Publish BanManager to mavenLocal
-        working-directory: BanManager
-        run: |
-          ./gradlew :BanManagerCommon:publishToMavenLocal :BanManagerLibs:publishToMavenLocal \
-            :fabric:${{ matrix.mc_version }}:publishToMavenLocal --build-cache
 
       - name: Build BanManager Fabric
         working-directory: BanManager
