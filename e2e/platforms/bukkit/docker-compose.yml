@@ -39,11 +39,12 @@ services:
       COPY_PLUGINS_SRC: "/plugins"
       COPY_PLUGINS_DEST: "/data/plugins"
       COPY_CONFIG_SRC: "/config"
-      COPY_CONFIG_DEST: "/data/plugins/BanManager"
+      COPY_CONFIG_DEST: "/data/plugins"
     volumes:
       - ../../../../BanManager/bukkit/build/libs/BanManagerBukkit.jar:/plugins/BanManager.jar:ro
       - ../../../bukkit/build/libs/BanManagerWebEnhancerBukkit.jar:/plugins/BanManagerWebEnhancer.jar:ro
-      - ./configs/banmanager:/config:ro
+      - ./configs/banmanager:/config/BanManager:ro
+      - ./configs/banmanager-webenhancer:/config/BanManager-WebEnhancer:ro
       - ./configs/bukkit.yml:/data/bukkit.yml:ro
       - paper-data:/data
     depends_on:

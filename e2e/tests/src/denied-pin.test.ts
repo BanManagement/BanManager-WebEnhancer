@@ -6,7 +6,7 @@ describe('Denied Pin Placeholder', () => {
 
   afterEach(async () => {
     try {
-      await sendCommand(`unban ${BANNED_USERNAME}`)
+      await sendCommand(`bmunban ${BANNED_USERNAME}`)
     } catch (e) {}
     await bannedBot?.disconnect()
     bannedBot = null
@@ -17,7 +17,7 @@ describe('Denied Pin Placeholder', () => {
   })
 
   test('[pin] placeholder in ban message is replaced with actual pin', async () => {
-    const banResponse = await sendCommand(`ban ${BANNED_USERNAME} Testing pin placeholder`)
+    const banResponse = await sendCommand(`bmban ${BANNED_USERNAME} Testing pin placeholder`)
     console.log(`Ban response: ${banResponse}`)
     await sleep(1000)
 
@@ -42,7 +42,7 @@ describe('Denied Pin Placeholder', () => {
   }, 30000)
 
   test('[pin] placeholder in tempban message is replaced with actual pin', async () => {
-    const tempbanResponse = await sendCommand(`tempban ${BANNED_USERNAME} 1h Testing tempban pin placeholder`)
+    const tempbanResponse = await sendCommand(`bmtempban ${BANNED_USERNAME} 1h Testing tempban pin placeholder`)
     console.log(`Tempban response: ${tempbanResponse}`)
     await sleep(1000)
 
