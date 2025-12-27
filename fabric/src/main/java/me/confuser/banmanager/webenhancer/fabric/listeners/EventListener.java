@@ -28,4 +28,3 @@ public class EventListener {
         plugin.setupConfigs();
     }
 }
-

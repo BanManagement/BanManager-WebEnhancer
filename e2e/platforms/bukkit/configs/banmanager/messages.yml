@@ -364,4 +364,3 @@ messages:
 
   update:
     notify: 'A new version of BanManager is now available'
-

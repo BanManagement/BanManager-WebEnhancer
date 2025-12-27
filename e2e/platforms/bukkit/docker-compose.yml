@@ -23,6 +23,8 @@ services:
       TYPE: "PAPER"
       VERSION: "1.21.1"
       ONLINE_MODE: "false"
+      # Skip re-downloading server JAR just to verify hash (speeds up cached runs)
+      SKIP_SERVER_JAR_HASH_CHECK: "true"
       ENABLE_RCON: "true"
       RCON_PASSWORD: "testing"
       RCON_PORT: 25575
@@ -74,6 +76,9 @@ services:
       DB_NAME: banmanager
       DB_USER: banmanager
       DB_PASSWORD: banmanager
+    volumes:
+      # Cache Jest/ts-jest transformations between runs
+      - jest-cache:/tmp/jest_cache
     networks:
       - banmanager
 
@@ -83,3 +88,4 @@ networks:
 
 volumes:
   paper-data:
+  jest-cache:

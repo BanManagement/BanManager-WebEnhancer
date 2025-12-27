@@ -62,4 +62,3 @@ public class LogServerAppender extends AbstractAppender {
         }
     }
 }
-
