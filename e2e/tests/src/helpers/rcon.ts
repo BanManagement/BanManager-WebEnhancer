@@ -37,9 +37,28 @@ export async function disconnectRcon (): Promise<void> {
   }
 }
 
-// Helper functions for common commands
 export async function reloadPlugin (): Promise<string> {
   return await sendCommand('bmreload')
+}
+
+export async function mutePlayer (player: string, reason: string = 'E2E Test'): Promise<string> {
+  return await sendCommand(`mute ${player} ${reason}`)
+}
+
+export async function unmutePlayer (player: string): Promise<string> {
+  return await sendCommand(`unmute ${player}`)
+}
+
+export async function getPlayerList (): Promise<string> {
+  return await sendCommand('list')
+}
+
+export async function banPlayer (player: string, reason: string = 'E2E Test'): Promise<string> {
+  return await sendCommand(`ban ${player} ${reason}`)
+}
+
+export async function unbanPlayer (player: string): Promise<string> {
+  return await sendCommand(`unban ${player}`)
 }
 
 export async function opPlayer (player: string): Promise<string> {
@@ -48,8 +67,4 @@ export async function opPlayer (player: string): Promise<string> {
 
 export async function deopPlayer (player: string): Promise<string> {
   return await sendCommand(`deop ${player}`)
-}
-
-export async function getPlayerList (): Promise<string> {
-  return await sendCommand('list')
 }

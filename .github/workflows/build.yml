@@ -6,7 +6,7 @@ on:
     branches:
       - master
   schedule:
-    - cron: "0 0 * * 0" # weekly
+    - cron: "0 0 * * 0"
 
 permissions:
   contents: read
@@ -24,14 +24,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Set up JDK 17 for Fabric 1.20.x builds (Gradle toolchain will use this)
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: "temurin"
 
-      # Set up JDK 21 as the primary JDK
       - name: Set up JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
@@ -50,7 +48,6 @@ jobs:
           key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-loom-
 
-      # Clone and build BanManager dependencies
       - name: Checkout BanManager
         uses: actions/checkout@v4
         with:
@@ -70,6 +67,5 @@ jobs:
           STORAGE_TYPE: ${{ matrix.storageType }}
         run: ./gradlew build --build-cache --info
 
-      # Build all Fabric versions
       - name: Build all Fabric versions
         run: ./gradlew :fabric:1.20.1:remapJar :fabric:1.21.1:remapJar :fabric:1.21.4:remapJar --build-cache

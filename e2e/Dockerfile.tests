@@ -11,3 +11,4 @@ COPY tests/ ./
 
 # Run tests
 CMD ["npm", "test"]
+

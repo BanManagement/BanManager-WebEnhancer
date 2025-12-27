@@ -22,3 +22,4 @@ permissions:
   bm.command.bmpin:
     description: Generates a login pin
     default: op
+

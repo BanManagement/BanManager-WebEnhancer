@@ -16,6 +16,7 @@ import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
+import me.confuser.banmanager.fabric.FabricCommand;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
 import me.confuser.banmanager.webenhancer.fabric.listeners.EventListener;
 import me.confuser.banmanager.webenhancer.fabric.listeners.LogServerAppender;
@@ -46,7 +47,6 @@ public class FabricPlugin implements DedicatedServerModInitializer {
             return;
         }
 
-        // Use BanManager's scheduler - no need to create our own
         plugin = new WebEnhancerPlugin(
             pluginInfo,
             new PluginLogger(LogManager.getLogger("BanManager-WebEnhancer")),
@@ -69,7 +69,6 @@ public class FabricPlugin implements DedicatedServerModInitializer {
     }
 
     private void onServerStopping(MinecraftServer server) {
-        // Remove log appender to prevent leaks
         if (appender != null) {
             ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).removeAppender(appender);
         }
@@ -118,7 +117,6 @@ public class FabricPlugin implements DedicatedServerModInitializer {
             }
         }
 
-        // Load plugin.yml from this mod's container to avoid classloader conflicts with BanManager
         PluginInfo pluginInfo = new PluginInfo();
         try (InputStream pluginYmlStream = getResourceAsStream("plugin.yml")) {
             if (pluginYmlStream == null) {
@@ -152,8 +150,6 @@ public class FabricPlugin implements DedicatedServerModInitializer {
     }
 
     private InputStream getResourceAsStream(String resource) {
-        // Use FabricLoader to get resources from this specific mod's container
-        // This avoids classloader conflicts where BanManager's resources might be loaded instead
         return FabricLoader.getInstance()
             .getModContainer("banmanager-webenhancer")
             .flatMap(container -> container.findPath(resource))

@@ -8,36 +8,16 @@ on:
   push:
     branches:
       - master
-  workflow_dispatch: # Allow manual triggering
+  workflow_dispatch:
 
 jobs:
-  e2e:
+  e2e-bukkit:
     runs-on: ubuntu-latest
-    name: E2E - Fabric-${{ matrix.mc_version }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # Fabric 1.20.1 (legacy modded, Java 17)
-          - mc_version: "1.20.1"
-            task_suffix: "1_20_1"
-            java_image: "java17"
-            fabric_loader: "0.16.10"
-          # Fabric 1.21.1 (stable 1.21, Java 21)
-          - mc_version: "1.21.1"
-            task_suffix: "1_21_1"
-            java_image: "java21"
-            fabric_loader: "0.16.9"
-          # Fabric 1.21.4 (current latest, Java 21)
-          - mc_version: "1.21.4"
-            task_suffix: "1_21_4"
-            java_image: "java21"
-            fabric_loader: "0.16.9"
+    name: E2E - Bukkit
 
     steps:
       - uses: actions/checkout@v4
 
-      # Checkout BanManager for building the Fabric mod
       - uses: actions/checkout@v4
         with:
           repository: BanManagement/BanManager
@@ -50,14 +30,115 @@ jobs:
           java-version: 21
           distribution: "temurin"
 
-      # Also set up JDK 17 for Fabric 1.20.x builds
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-docker-e2e-${{ hashFiles('e2e/Dockerfile.tests', 'e2e/tests/package*.json') }}
+          restore-keys: |
+            ${{ runner.os }}-docker-e2e-
+
+      - name: Build test runner image
+        uses: docker/build-push-action@v5
+        with:
+          context: e2e
+          file: e2e/Dockerfile.tests
+          push: false
+          load: true
+          tags: e2e-tests:latest
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+      - name: Move Docker cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+      - name: Publish BanManager to mavenLocal
+        working-directory: BanManager
+        run: |
+          ./gradlew :BanManagerCommon:publishToMavenLocal :BanManagerLibs:publishToMavenLocal \
+            :BanManagerBukkit:publishToMavenLocal --build-cache
+
+      - name: Build BanManager Bukkit
+        working-directory: BanManager
+        run: ./gradlew :BanManagerBukkit:shadowJar --build-cache
+
+      - name: Build WebEnhancer Bukkit
+        run: ./gradlew :BanManagerWebEnhancerBukkit:shadowJar --build-cache
+
+      - name: Run E2E tests
+        run: ./gradlew :BanManagerWebEnhancerE2E:testBukkit
+        timeout-minutes: 15
+
+      - name: Collect logs on failure
+        if: failure()
+        working-directory: e2e/platforms/bukkit
+        run: |
+          docker compose logs > ../../e2e-logs-bukkit.txt 2>&1 || true
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs-bukkit
+          path: e2e-logs-bukkit.txt
+          retention-days: 7
+
+      - name: Cleanup
+        if: always()
+        working-directory: e2e/platforms/bukkit
+        run: docker compose down -v || true
+
+  e2e-fabric:
+    runs-on: ubuntu-latest
+    name: E2E - Fabric-${{ matrix.mc_version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mc_version: "1.20.1"
+            task_suffix: "1_20_1"
+            java_image: "java17"
+            fabric_loader: "0.16.10"
+          - mc_version: "1.21.1"
+            task_suffix: "1_21_1"
+            java_image: "java21"
+            fabric_loader: "0.16.9"
+          - mc_version: "1.21.4"
+            task_suffix: "1_21_4"
+            java_image: "java21"
+            fabric_loader: "0.16.9"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: BanManagement/BanManager
+          path: BanManager
+          ref: master
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "temurin"
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: "temurin"
 
-      # Ensure JDK 21 is the default
       - name: Set JDK 21 as default
         run: echo "JAVA_HOME=$JAVA_HOME_21_X64" >> $GITHUB_ENV
 
@@ -73,11 +154,9 @@ jobs:
           key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-loom-
 
-      # Docker Buildx for better caching
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # Cache Docker layers for test runner image
       - name: Cache Docker layers
         uses: actions/cache@v4
         with:
@@ -86,7 +165,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-docker-e2e-
 
-      # Pre-build the test runner image with cache
       - name: Build test runner image
         uses: docker/build-push-action@v5
         with:
@@ -98,25 +176,21 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
-      # Move cache to avoid ever-growing cache
       - name: Move Docker cache
         run: |
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
-      # Build BanManager dependencies and publish to mavenLocal
       - name: Publish BanManager to mavenLocal
         working-directory: BanManager
         run: |
           ./gradlew :BanManagerCommon:publishToMavenLocal :BanManagerLibs:publishToMavenLocal \
             :fabric:${{ matrix.mc_version }}:publishToMavenLocal --build-cache
 
-      # Build BanManager Fabric plugin
       - name: Build BanManager Fabric
         working-directory: BanManager
         run: ./gradlew :fabric:${{ matrix.mc_version }}:remapJar --build-cache
 
-      # Build WebEnhancer Fabric plugin
       - name: Build WebEnhancer Fabric
         run: ./gradlew :fabric:${{ matrix.mc_version }}:remapJar --build-cache
 

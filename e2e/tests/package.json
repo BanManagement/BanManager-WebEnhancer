@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "mineflayer": "^4.23.0",
+    "mysql2": "^3.11.0",
     "rcon-client": "^4.2.4"
   },
   "devDependencies": {

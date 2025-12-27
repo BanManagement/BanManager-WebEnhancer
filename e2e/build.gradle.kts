@@ -4,7 +4,6 @@ plugins {
 
 description = "E2E tests for BanManager-WebEnhancer using Docker and Mineflayer"
 
-// Fabric version configurations
 data class FabricVersion(val mcVersion: String, val javaImage: String, val fabricLoader: String)
 
 val fabricVersions = listOf(
@@ -13,7 +12,6 @@ val fabricVersions = listOf(
     FabricVersion("1.21.4", "java21", "0.16.9")
 )
 
-// Helper function to create platform test tasks
 fun createPlatformTestTask(
     taskName: String,
     platformDir: String,
@@ -29,7 +27,6 @@ fun createPlatformTestTask(
 
         workingDir = file("platforms/$platformDir")
 
-        // Set environment variables for docker-compose
         environment.forEach { (key, value) ->
             environment(key, value)
         }
@@ -51,7 +48,13 @@ fun createPlatformTestTask(
     }
 }
 
-// Fabric version-specific E2E tests
+createPlatformTestTask(
+    "testBukkit",
+    "bukkit",
+    ":BanManagerWebEnhancerBukkit:shadowJar",
+    "Run Bukkit E2E tests in Docker"
+)
+
 fabricVersions.forEach { version ->
     val versionSuffix = version.mcVersion.replace(".", "_")
 
@@ -68,7 +71,6 @@ fabricVersions.forEach { version ->
     )
 }
 
-// Fabric E2E tests - runs latest version (1.21.4)
 createPlatformTestTask(
     "testFabric",
     "fabric",
@@ -81,7 +83,6 @@ createPlatformTestTask(
     )
 )
 
-// Test all Fabric versions
 tasks.register("testFabricAll") {
     group = "verification"
     description = "Run Fabric E2E tests for all supported MC versions"
@@ -96,17 +97,42 @@ tasks.register("testAll") {
     group = "verification"
     description = "Run E2E tests for all platforms"
 
-    dependsOn("testFabric")
+    dependsOn("testBukkit", "testFabric")
 }
 
-// Default "test" task
 tasks.register("test") {
     group = "verification"
-    description = "Run Fabric E2E tests (alias for testFabric)"
-    dependsOn("testFabric")
+    description = "Run Bukkit E2E tests (alias for testBukkit)"
+    dependsOn("testBukkit")
 }
 
-// Helper tasks for Fabric debugging
+tasks.register<Exec>("startBukkit") {
+    group = "verification"
+    description = "Start the Bukkit test server without running tests (for debugging)"
+
+    dependsOn(":BanManagerWebEnhancerBukkit:shadowJar")
+
+    workingDir = file("platforms/bukkit")
+    commandLine("docker", "compose", "up", "-d", "mariadb", "paper")
+}
+
+tasks.register<Exec>("stopBukkit") {
+    group = "verification"
+    description = "Stop the Bukkit test server"
+
+    workingDir = file("platforms/bukkit")
+    commandLine("docker", "compose", "down", "-v")
+    isIgnoreExitValue = true
+}
+
+tasks.register<Exec>("logsBukkit") {
+    group = "verification"
+    description = "Show Bukkit server logs"
+
+    workingDir = file("platforms/bukkit")
+    commandLine("docker", "compose", "logs", "-f", "paper")
+}
+
 fun createFabricDebugTasks(mcVersion: String, javaImage: String, fabricLoader: String) {
     val versionSuffix = mcVersion.replace(".", "_")
     val envVars = mapOf(
@@ -146,12 +172,10 @@ fun createFabricDebugTasks(mcVersion: String, javaImage: String, fabricLoader: S
     }
 }
 
-// Create debug tasks for each Fabric version
 fabricVersions.forEach { version ->
     createFabricDebugTasks(version.mcVersion, version.javaImage, version.fabricLoader)
 }
 
-// Default Fabric debug tasks (latest version)
 tasks.register<Exec>("startFabric") {
     group = "verification"
     description = "Start the Fabric test server without running tests (for debugging) - latest: 1.21.4"
@@ -184,8 +208,7 @@ tasks.register<Exec>("logsFabric") {
 
 tasks.named("clean") {
     doLast {
-        // Clean up all platform Docker resources
-        listOf("fabric").forEach { platform ->
+        listOf("bukkit", "fabric").forEach { platform ->
             exec {
                 workingDir = file("platforms/$platform")
                 commandLine("docker", "compose", "down", "-v", "--rmi", "local")

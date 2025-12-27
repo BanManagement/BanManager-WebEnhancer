@@ -1,4 +1,4 @@
-name: bmwe-fabric
+name: bmwe-bukkit
 
 services:
   mariadb:
@@ -16,13 +16,12 @@ services:
     networks:
       - banmanager
 
-  fabric:
-    image: itzg/minecraft-server:${JAVA_IMAGE:-java21}
+  paper:
+    image: itzg/minecraft-server:java21
     environment:
       EULA: "TRUE"
-      TYPE: "FABRIC"
-      VERSION: "${MC_VERSION:-1.21.4}"
-      FABRIC_LOADER_VERSION: "${FABRIC_LOADER:-0.16.9}"
+      TYPE: "PAPER"
+      VERSION: "1.21.1"
       ONLINE_MODE: "false"
       ENABLE_RCON: "true"
       RCON_PASSWORD: "testing"
@@ -34,17 +33,17 @@ services:
       MAX_WORLD_SIZE: 100
       LEVEL_TYPE: "flat"
       GENERATE_STRUCTURES: "false"
-      MODRINTH_PROJECTS: "fabric-api,fabric-permissions-api"
-      COPY_MODS_SRC: "/mods-src"
-      COPY_MODS_DEST: "/data/mods"
+      BUKKIT_SETTINGS_CONNECTION_THROTTLE: -1
+      COPY_PLUGINS_SRC: "/plugins"
+      COPY_PLUGINS_DEST: "/data/plugins"
       COPY_CONFIG_SRC: "/config"
-      COPY_CONFIG_DEST: "/data/config"
+      COPY_CONFIG_DEST: "/data/plugins/BanManager"
     volumes:
-      - ../../../../BanManager/fabric/versions/${MC_VERSION:-1.21.4}/build/libs/BanManagerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManager.jar:ro
-      - ../../../fabric/versions/${MC_VERSION:-1.21.4}/build/libs/BanManagerWebEnhancerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManagerWebEnhancer.jar:ro
-      - ./configs/banmanager:/config/banmanager:ro
-      - ./configs/banmanager-webenhancer:/config/banmanager-webenhancer:ro
-      - fabric-data-${MC_VERSION:-1.21.4}:/data
+      - ../../../../BanManager/bukkit/build/libs/BanManagerBukkit.jar:/plugins/BanManager.jar:ro
+      - ../../../bukkit/build/libs/BanManagerWebEnhancerBukkit.jar:/plugins/BanManagerWebEnhancer.jar:ro
+      - ./configs/banmanager:/config:ro
+      - ./configs/bukkit.yml:/data/bukkit.yml:ro
+      - paper-data:/data
     depends_on:
       mariadb:
         condition: service_healthy
@@ -53,7 +52,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
-      start_period: 90s
+      start_period: 60s
     networks:
       - banmanager
 
@@ -62,15 +61,14 @@ services:
       context: ../..
       dockerfile: Dockerfile.tests
     depends_on:
-      fabric:
+      paper:
         condition: service_healthy
     environment:
-      SERVER_HOST: fabric
+      SERVER_HOST: paper
       SERVER_PORT: 25565
-      RCON_HOST: fabric
+      RCON_HOST: paper
       RCON_PORT: 25575
       RCON_PASSWORD: testing
-      MC_VERSION: "${MC_VERSION:-1.21.4}"
       DB_HOST: mariadb
       DB_PORT: 3306
       DB_NAME: banmanager
@@ -84,6 +82,4 @@ networks:
     driver: bridge
 
 volumes:
-  fabric-data-1.20.1:
-  fabric-data-1.21.1:
-  fabric-data-1.21.4:
+  paper-data:
