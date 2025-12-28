@@ -1,0 +1,95 @@
+name: bmwe-fabric
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: banmanager
+      MYSQL_USER: banmanager
+      MYSQL_PASSWORD: banmanager
+    healthcheck:
+      test: ["CMD", "mariadb", "-uroot", "-proot", "-e", "SELECT 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - banmanager
+
+  fabric:
+    image: itzg/minecraft-server:${JAVA_IMAGE:-java21}
+    environment:
+      EULA: "TRUE"
+      TYPE: "FABRIC"
+      VERSION: "${MC_VERSION:-1.21.4}"
+      FABRIC_LOADER_VERSION: "${FABRIC_LOADER:-0.16.9}"
+      ONLINE_MODE: "false"
+      # Skip re-downloading server JAR just to verify hash (speeds up cached runs)
+      SKIP_SERVER_JAR_HASH_CHECK: "true"
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: "testing"
+      RCON_PORT: 25575
+      MEMORY: "2G"
+      SPAWN_PROTECTION: 0
+      VIEW_DISTANCE: 4
+      SIMULATION_DISTANCE: 4
+      MAX_WORLD_SIZE: 100
+      LEVEL_TYPE: "flat"
+      GENERATE_STRUCTURES: "false"
+      MODRINTH_PROJECTS: "fabric-api,fabric-permissions-api"
+      COPY_MODS_SRC: "/mods-src"
+      COPY_MODS_DEST: "/data/mods"
+      COPY_CONFIG_SRC: "/config"
+      COPY_CONFIG_DEST: "/data/config"
+    volumes:
+      - ../../jars/BanManagerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManager.jar:ro
+      - ../../jars/BanManagerWebEnhancerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManagerWebEnhancer.jar:ro
+      - ./configs/banmanager:/config/banmanager:ro
+      - ./configs/banmanager-webenhancer:/config/banmanager-webenhancer:ro
+      - fabric-data-${MC_VERSION:-1.21.4}:/data
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "rcon-cli", "--password", "testing", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 90s
+    networks:
+      - banmanager
+
+  tests:
+    build:
+      context: ../..
+      dockerfile: Dockerfile.tests
+    depends_on:
+      fabric:
+        condition: service_healthy
+    environment:
+      SERVER_HOST: fabric
+      SERVER_PORT: 25565
+      RCON_HOST: fabric
+      RCON_PORT: 25575
+      RCON_PASSWORD: testing
+      MC_VERSION: "${MC_VERSION:-1.21.4}"
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_NAME: banmanager
+      DB_USER: banmanager
+      DB_PASSWORD: banmanager
+    volumes:
+      # Cache Jest/ts-jest transformations between runs
+      - jest-cache:/tmp/jest_cache
+    networks:
+      - banmanager
+
+networks:
+  banmanager:
+    driver: bridge
+
+volumes:
+  fabric-data-1.20.1:
+  fabric-data-1.21.1:
+  fabric-data-1.21.4:
+  jest-cache:

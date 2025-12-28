@@ -58,7 +58,7 @@ fun Project.applyPlatformAndCoreConfiguration() {
 }
 
 fun Project.applyShadowConfiguration() {
-    apply(plugin = "com.github.johnrengelman.shadow")
+    apply(plugin = "com.gradleup.shadow")
     tasks.named<ShadowJar>("shadowJar") {
         archiveClassifier.set("dist")
         dependencies {

@@ -11,16 +11,17 @@ fun Project.applyCommonConfiguration() {
         mavenLocal()
         mavenCentral()
         maven { url = uri("https://repo.codemc.io/repository/maven-public/") }
-        maven { url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots") }
+        // Central Portal snapshot repository (OSSRH sunset June 2025)
+        maven { url = uri("https://central.sonatype.com/repository/maven-snapshots/") }
         maven { url = uri("https://ci.frostcast.net/plugin/repository/everything") }
     }
 
     dependencies {
-        "compileOnly"("org.projectlombok:lombok:1.18.22")
-        "annotationProcessor"("org.projectlombok:lombok:1.18.22")
+        "compileOnly"("org.projectlombok:lombok:1.18.36")
+        "annotationProcessor"("org.projectlombok:lombok:1.18.36")
 
-        "testCompileOnly"("org.projectlombok:lombok:1.18.22")
-        "testAnnotationProcessor"("org.projectlombok:lombok:1.18.22")
+        "testCompileOnly"("org.projectlombok:lombok:1.18.36")
+        "testAnnotationProcessor"("org.projectlombok:lombok:1.18.36")
     }
 
     configurations.all {
@@ -29,8 +30,12 @@ fun Project.applyCommonConfiguration() {
         }
     }
 
+    // Only set Java 1.8 for non-Fabric modules
+    // Fabric uses toolchain configuration in its build.gradle.kts
     plugins.withId("java") {
-        the<JavaPluginExtension>().setSourceCompatibility("1.8")
-        the<JavaPluginExtension>().setTargetCompatibility("1.8")
+        if (!plugins.hasPlugin("fabric-loom")) {
+            the<JavaPluginExtension>().setSourceCompatibility("1.8")
+            the<JavaPluginExtension>().setTargetCompatibility("1.8")
+        }
     }
 }

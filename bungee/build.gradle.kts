@@ -10,7 +10,11 @@ applyShadowConfiguration()
 repositories {
     maven {
         name = "paper"
-        url = uri("https://papermc.io/repo/repository/maven-public/")
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+    }
+    maven {
+        name = "central-portal-snapshots"
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
     }
 }
 
@@ -22,9 +26,9 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerBungee:7.8.0-SNAPSHOT")
+    compileOnly("me.confuser.banmanager:BanManagerBungee:7.10.0-SNAPSHOT")
 
-    compileOnly("net.md-5:bungeecord-api:1.14-SNAPSHOT")
+    compileOnly("net.md-5:bungeecord-api:1.21-R0.4")
     "shadeOnly"("org.bstats:bstats-bungeecord:2.2.1")
 }
 
