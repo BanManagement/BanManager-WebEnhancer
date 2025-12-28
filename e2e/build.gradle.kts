@@ -38,6 +38,22 @@ registerCopyBanManagerFabricTask("1.20.1")
 registerCopyBanManagerFabricTask("1.21.1")
 registerCopyBanManagerFabricTask("1.21.4")
 
+tasks.register<Copy>("copyBanManagerSpongeJar") {
+    group = "verification"
+    description = "Copy BanManager Sponge shadow JAR to e2e/jars"
+
+    into(file("jars"))
+    from(file("${banManagerDir.absolutePath}/sponge/build/libs/BanManagerSponge.jar"))
+}
+
+tasks.register<Copy>("copyBanManagerSponge7Jar") {
+    group = "verification"
+    description = "Copy BanManager Sponge7 shadow JAR to e2e/jars"
+
+    into(file("jars"))
+    from(file("${banManagerDir.absolutePath}/sponge-api7/build/libs/BanManagerSponge7.jar"))
+}
+
 tasks.register<Copy>("copyWebEnhancerBukkitJar") {
     group = "verification"
     description = "Copy WebEnhancer Bukkit JAR to e2e/jars"
@@ -68,6 +84,30 @@ registerCopyWebEnhancerFabricTask("1.20.1")
 registerCopyWebEnhancerFabricTask("1.21.1")
 registerCopyWebEnhancerFabricTask("1.21.4")
 
+tasks.register<Copy>("copyWebEnhancerSpongeJar") {
+    group = "verification"
+    description = "Copy WebEnhancer Sponge JAR to e2e/jars"
+
+    dependsOn(":BanManagerWebEnhancerSponge:shadowJar")
+
+    into(file("jars"))
+    from(project(":BanManagerWebEnhancerSponge").tasks.named("shadowJar")) {
+        rename { "BanManagerWebEnhancerSponge.jar" }
+    }
+}
+
+tasks.register<Copy>("copyWebEnhancerSponge7Jar") {
+    group = "verification"
+    description = "Copy WebEnhancer Sponge7 JAR to e2e/jars"
+
+    dependsOn(":BanManagerWebEnhancerSponge7:shadowJar")
+
+    into(file("jars"))
+    from(project(":BanManagerWebEnhancerSponge7").tasks.named("shadowJar")) {
+        rename { "BanManagerWebEnhancerSponge7.jar" }
+    }
+}
+
 tasks.register("prepareJars") {
     group = "verification"
     description = "Prepare all plugin JARs for E2E tests"
@@ -80,6 +120,13 @@ val fabricVersions = listOf(
     FabricVersion("1.20.1", "java17", "0.16.10"),
     FabricVersion("1.21.1", "java21", "0.16.9"),
     FabricVersion("1.21.4", "java21", "0.16.9")
+)
+
+// Sponge version configurations
+data class SpongeVersion(val mcVersion: String, val javaImage: String, val spongeVersion: String)
+
+val spongeVersions = listOf(
+    SpongeVersion("1.20.6", "java21", "1.20.6-11.0.0")
 )
 
 fun createPlatformTestTask(
@@ -175,11 +222,70 @@ tasks.register("testFabricAll") {
     }
 }
 
+// Sponge E2E tests
+tasks.register("prepareSpongeJars") {
+    group = "verification"
+    description = "Prepare Sponge plugin JARs for E2E tests"
+    dependsOn("copyBanManagerSpongeJar", "copyWebEnhancerSpongeJar")
+}
+
+spongeVersions.forEach { version ->
+    val versionSuffix = version.mcVersion.replace(".", "_")
+
+    createPlatformTestTask(
+        "testSponge_${versionSuffix}",
+        "sponge",
+        "prepareSpongeJars",
+        "Run Sponge ${version.mcVersion} E2E tests in Docker",
+        mapOf(
+            "MC_VERSION" to version.mcVersion,
+            "JAVA_IMAGE" to version.javaImage,
+            "SPONGEVERSION" to version.spongeVersion
+        )
+    )
+}
+
+createPlatformTestTask(
+    "testSponge",
+    "sponge",
+    "prepareSpongeJars",
+    "Run Sponge E2E tests in Docker (default: 1.20.6 / API 11)",
+    mapOf(
+        "MC_VERSION" to "1.20.6",
+        "JAVA_IMAGE" to "java21",
+        "SPONGEVERSION" to "1.20.6-11.0.0"
+    )
+)
+
+tasks.register("testSpongeAll") {
+    group = "verification"
+    description = "Run Sponge E2E tests for all supported versions"
+
+    spongeVersions.forEach { version ->
+        val versionSuffix = version.mcVersion.replace(".", "_")
+        dependsOn("testSponge_${versionSuffix}")
+    }
+}
+
+// Sponge7 (Legacy API 7 / MC 1.12.2) E2E tests
+tasks.register("prepareSponge7Jars") {
+    group = "verification"
+    description = "Prepare Sponge7 (legacy) plugin JARs for E2E tests"
+    dependsOn("copyBanManagerSponge7Jar", "copyWebEnhancerSponge7Jar")
+}
+
+createPlatformTestTask(
+    "testSponge7",
+    "sponge7",
+    "prepareSponge7Jars",
+    "Run Sponge7 (legacy API 7 / MC 1.12.2) E2E tests in Docker"
+)
+
 tasks.register("testAll") {
     group = "verification"
     description = "Run E2E tests for all platforms"
 
-    dependsOn("testBukkit", "testFabric")
+    dependsOn("testBukkit", "testFabric", "testSponge")
 }
 
 tasks.register("test") {
@@ -288,9 +394,111 @@ tasks.register<Exec>("logsFabric") {
     commandLine("docker", "compose", "logs", "-f", "fabric")
 }
 
+// Sponge debug tasks
+fun createSpongeDebugTasks(mcVersion: String, javaImage: String, spongeVersion: String) {
+    val versionSuffix = mcVersion.replace(".", "_")
+    val envVars = mapOf(
+        "MC_VERSION" to mcVersion,
+        "JAVA_IMAGE" to javaImage,
+        "SPONGEVERSION" to spongeVersion
+    )
+
+    tasks.register<Exec>("startSponge_${versionSuffix}") {
+        group = "verification"
+        description = "Start the Sponge $mcVersion test server without running tests (for debugging)"
+
+        dependsOn("prepareSpongeJars")
+
+        workingDir = file("platforms/sponge")
+        envVars.forEach { (key, value) -> environment(key, value) }
+        commandLine("docker", "compose", "up", "-d", "mariadb", "sponge")
+    }
+
+    tasks.register<Exec>("stopSponge_${versionSuffix}") {
+        group = "verification"
+        description = "Stop the Sponge $mcVersion test server"
+
+        workingDir = file("platforms/sponge")
+        envVars.forEach { (key, value) -> environment(key, value) }
+        commandLine("docker", "compose", "down", "-v")
+        isIgnoreExitValue = true
+    }
+
+    tasks.register<Exec>("logsSponge_${versionSuffix}") {
+        group = "verification"
+        description = "Show Sponge $mcVersion server logs"
+
+        workingDir = file("platforms/sponge")
+        envVars.forEach { (key, value) -> environment(key, value) }
+        commandLine("docker", "compose", "logs", "-f", "sponge")
+    }
+}
+
+spongeVersions.forEach { version ->
+    createSpongeDebugTasks(version.mcVersion, version.javaImage, version.spongeVersion)
+}
+
+tasks.register<Exec>("startSponge") {
+    group = "verification"
+    description = "Start the Sponge test server without running tests (for debugging) - default: 1.20.6"
+
+    dependsOn("prepareSpongeJars")
+
+    workingDir = file("platforms/sponge")
+    environment("MC_VERSION", "1.20.6")
+    environment("JAVA_IMAGE", "java21")
+    environment("SPONGEVERSION", "1.20.6-11.0.0")
+    commandLine("docker", "compose", "up", "-d", "mariadb", "sponge")
+}
+
+tasks.register<Exec>("stopSponge") {
+    group = "verification"
+    description = "Stop the Sponge test server"
+
+    workingDir = file("platforms/sponge")
+    commandLine("docker", "compose", "down", "-v")
+    isIgnoreExitValue = true
+}
+
+tasks.register<Exec>("logsSponge") {
+    group = "verification"
+    description = "Show Sponge server logs"
+
+    workingDir = file("platforms/sponge")
+    commandLine("docker", "compose", "logs", "-f", "sponge")
+}
+
+// Sponge7 debug tasks
+tasks.register<Exec>("startSponge7") {
+    group = "verification"
+    description = "Start the Sponge7 (legacy) test server without running tests (for debugging)"
+
+    dependsOn("prepareSponge7Jars")
+
+    workingDir = file("platforms/sponge7")
+    commandLine("docker", "compose", "up", "-d", "mariadb", "sponge7")
+}
+
+tasks.register<Exec>("stopSponge7") {
+    group = "verification"
+    description = "Stop the Sponge7 test server"
+
+    workingDir = file("platforms/sponge7")
+    commandLine("docker", "compose", "down", "-v")
+    isIgnoreExitValue = true
+}
+
+tasks.register<Exec>("logsSponge7") {
+    group = "verification"
+    description = "Show Sponge7 server logs"
+
+    workingDir = file("platforms/sponge7")
+    commandLine("docker", "compose", "logs", "-f", "sponge7")
+}
+
 tasks.named("clean") {
     doLast {
-        listOf("bukkit", "fabric").forEach { platform ->
+        listOf("bukkit", "fabric", "sponge", "sponge7").forEach { platform ->
             exec {
                 workingDir = file("platforms/$platform")
                 commandLine("docker", "compose", "down", "-v", "--rmi", "local")

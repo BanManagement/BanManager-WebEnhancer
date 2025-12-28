@@ -1,19 +1,28 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.spongepowered.gradle.plugin.config.PluginLoaders
+import org.spongepowered.plugin.metadata.model.PluginDependency
+
 
 plugins {
     `java-library`
     id("org.spongepowered.gradle.plugin")
+    id("net.kyori.blossom") version "1.2.0"
 }
 
 applyPlatformAndCoreConfiguration()
 applyShadowConfiguration()
 
+blossom {
+    replaceToken("@projectVersion@", project.ext["internalVersion"])
+}
+
 sponge {
-    apiVersion("11.0.0")
+    apiVersion("7.2.0")
     loader {
-        name(org.spongepowered.gradle.plugin.config.PluginLoaders.JAVA_PLAIN)
+        name(PluginLoaders.JAVA_PLAIN)
         version("1.0")
     }
+
     license("MIT License")
 
     plugin("banmanager-webenhancer") {
@@ -22,21 +31,21 @@ sponge {
         description("An addon required by the BanManager WebUI")
         links {
             homepage("https://banmanagement.com/")
-            source("https://github.com/BanManagement/BanManager-WebEnhancer")
-            issues("https://github.com/BanManagement/BanManager-WebEnhancer/issues")
+            source("https://github.com/BanManagment/BanManager-WebEnhancer")
+            issues("https://github.com/BanManagment/BanManager-WebEnhancer")
         }
         contributor("confuser") {
             description("Lead Developer")
         }
         dependency("spongeapi") {
-            loadOrder(org.spongepowered.plugin.metadata.model.PluginDependency.LoadOrder.AFTER)
+            loadOrder(PluginDependency.LoadOrder.AFTER)
             optional(false)
-            version("11.0.0")
+            version("7.2.0")
         }
         dependency("banmanager") {
-            loadOrder(org.spongepowered.plugin.metadata.model.PluginDependency.LoadOrder.AFTER)
+            loadOrder(PluginDependency.LoadOrder.AFTER)
             optional(false)
-            version("7.10.0")
+            version("7.7.0")
         }
     }
 }
@@ -44,7 +53,7 @@ sponge {
 repositories {
     maven {
         name = "sponge"
-        url = uri("https://repo.spongepowered.org/repository/maven-public/")
+        url = uri("https://repo.spongepowered.org/maven/")
     }
 }
 
@@ -53,23 +62,20 @@ configurations {
 }
 
 dependencies {
-    compileOnly("org.spongepowered:spongeapi:11.0.0")
-    compileOnly("me.confuser.banmanager:BanManagerSponge:7.10.0-SNAPSHOT")
+    compileOnly("org.spongepowered:spongeapi:7.2.0")
+    compileOnly("me.confuser.banmanager:BanManagerSponge7:7.10.0-SNAPSHOT")
 
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
 
-    "shadeOnly"("org.bstats:bstats-sponge:3.0.2")
+    "shadeOnly"("org.bstats:bstats-sponge:2.2.1")
 }
 
-// Sponge API 11+ requires Java 21
+val javaTarget = 8 // Sponge targets a minimum of Java 8
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
-    }
+    sourceCompatibility = JavaVersion.toVersion(javaTarget)
+    targetCompatibility = JavaVersion.toVersion(javaTarget)
 }
 
 tasks.named<Copy>("processResources") {
@@ -93,7 +99,7 @@ tasks.named<Jar>("jar") {
 tasks.named<ShadowJar>("shadowJar") {
     configurations = listOf(project.configurations["shadeOnly"], project.configurations["runtimeClasspath"])
 
-    archiveBaseName.set("BanManagerWebEnhancerSponge")
+    archiveBaseName.set("BanManagerWebEnhancerSponge7")
     archiveClassifier.set("")
     archiveVersion.set("")
 
@@ -101,9 +107,9 @@ tasks.named<ShadowJar>("shadowJar") {
         include(dependency(":BanManagerWebEnhancerCommon"))
         include(dependency(":BanManagerWebEnhancerLibs"))
         include(dependency("org.bstats:.*:.*"))
-
-        relocate("org.bstats", "me.confuser.banmanager.webenhancer.common.bstats")
     }
+
+    relocate("org.bstats", "me.confuser.banmanager.webenhancer.common.bstats")
 
     exclude("GradleStart**")
     exclude(".cache");
@@ -116,9 +122,7 @@ tasks.named<ShadowJar>("shadowJar") {
     exclude("**/module-info.class")
     exclude("*.yml")
 
-    minimize {
-        exclude(dependency("org.bstats:.*:.*"))
-    }
+    minimize()
 }
 
 tasks.named("assemble").configure {
