@@ -42,8 +42,8 @@ services:
       COPY_CONFIG_SRC: "/config"
       COPY_CONFIG_DEST: "/data/config"
     volumes:
-      - ../../../../BanManager/fabric/versions/${MC_VERSION:-1.21.4}/build/libs/BanManagerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManager.jar:ro
-      - ../../../fabric/versions/${MC_VERSION:-1.21.4}/build/libs/BanManagerWebEnhancerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManagerWebEnhancer.jar:ro
+      - ../../jars/BanManagerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManager.jar:ro
+      - ../../jars/BanManagerWebEnhancerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManagerWebEnhancer.jar:ro
       - ./configs/banmanager:/config/banmanager:ro
       - ./configs/banmanager-webenhancer:/config/banmanager-webenhancer:ro
       - fabric-data-${MC_VERSION:-1.21.4}:/data

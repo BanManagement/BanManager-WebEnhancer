@@ -66,11 +66,8 @@ jobs:
         working-directory: BanManager
         run: ./gradlew :BanManagerBukkit:shadowJar --build-cache
 
-      - name: Build WebEnhancer Bukkit
-        run: ./gradlew :BanManagerWebEnhancerBukkit:shadowJar --build-cache
-
       - name: Run E2E tests
-        run: ./gradlew :BanManagerWebEnhancerE2E:testBukkit
+        run: ./gradlew :BanManagerWebEnhancerE2E:testBukkit --build-cache -PbanManagerPath=BanManager
         timeout-minutes: 15
 
       - name: Collect logs on failure
@@ -179,11 +176,8 @@ jobs:
         working-directory: BanManager
         run: ./gradlew :fabric:${{ matrix.mc_version }}:remapJar --build-cache
 
-      - name: Build WebEnhancer Fabric
-        run: ./gradlew :fabric:${{ matrix.mc_version }}:remapJar --build-cache
-
       - name: Run E2E tests
-        run: ./gradlew :BanManagerWebEnhancerE2E:testFabric_${{ matrix.task_suffix }}
+        run: ./gradlew :BanManagerWebEnhancerE2E:testFabric_${{ matrix.task_suffix }} --build-cache -PbanManagerPath=BanManager
         timeout-minutes: 15
         env:
           MC_VERSION: ${{ matrix.mc_version }}

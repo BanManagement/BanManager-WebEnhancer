@@ -4,6 +4,76 @@ plugins {
 
 description = "E2E tests for BanManager-WebEnhancer using Docker and Mineflayer"
 
+// BanManager path - defaults to sibling directory for local dev, CI sets via property
+val banManagerPath: String = findProperty("banManagerPath")?.toString()
+    ?: System.getenv("BANMANAGER_PATH")
+    ?: "../BanManager"
+
+// Resolve relative to root project for local dev, or as-is for CI (which passes absolute or relative-to-root)
+val banManagerDir = if (banManagerPath.startsWith("/")) {
+    file(banManagerPath)
+} else {
+    rootProject.file(banManagerPath)
+}
+
+tasks.register<Copy>("copyBanManagerBukkitJar") {
+    group = "verification"
+    description = "Copy BanManager Bukkit shadow JAR to e2e/jars"
+
+    into(file("jars"))
+    from(file("${banManagerDir.absolutePath}/bukkit/build/libs/BanManagerBukkit.jar"))
+}
+
+fun registerCopyBanManagerFabricTask(mcVersion: String) {
+    tasks.register<Copy>("copyBanManagerFabric_${mcVersion.replace(".", "_")}Jar") {
+        group = "verification"
+        description = "Copy BanManager Fabric $mcVersion JAR to e2e/jars"
+
+        into(file("jars"))
+        from(file("${banManagerDir.absolutePath}/fabric/versions/$mcVersion/build/libs/BanManagerFabric-mc$mcVersion.jar"))
+    }
+}
+
+registerCopyBanManagerFabricTask("1.20.1")
+registerCopyBanManagerFabricTask("1.21.1")
+registerCopyBanManagerFabricTask("1.21.4")
+
+tasks.register<Copy>("copyWebEnhancerBukkitJar") {
+    group = "verification"
+    description = "Copy WebEnhancer Bukkit JAR to e2e/jars"
+
+    dependsOn(":BanManagerWebEnhancerBukkit:shadowJar")
+
+    into(file("jars"))
+    from(project(":BanManagerWebEnhancerBukkit").tasks.named("shadowJar")) {
+        rename { "BanManagerWebEnhancerBukkit.jar" }
+    }
+}
+
+fun registerCopyWebEnhancerFabricTask(mcVersion: String) {
+    tasks.register<Copy>("copyWebEnhancerFabric_${mcVersion.replace(".", "_")}Jar") {
+        group = "verification"
+        description = "Copy WebEnhancer Fabric $mcVersion JAR to e2e/jars"
+
+        dependsOn(":fabric:${mcVersion}:remapJar")
+
+        into(file("jars"))
+        from(project(":fabric:${mcVersion}").tasks.named("remapJar")) {
+            rename { "BanManagerWebEnhancerFabric-mc${mcVersion}.jar" }
+        }
+    }
+}
+
+registerCopyWebEnhancerFabricTask("1.20.1")
+registerCopyWebEnhancerFabricTask("1.21.1")
+registerCopyWebEnhancerFabricTask("1.21.4")
+
+tasks.register("prepareJars") {
+    group = "verification"
+    description = "Prepare all plugin JARs for E2E tests"
+    dependsOn("copyBanManagerBukkitJar")
+}
+
 data class FabricVersion(val mcVersion: String, val javaImage: String, val fabricLoader: String)
 
 val fabricVersions = listOf(
@@ -48,20 +118,32 @@ fun createPlatformTestTask(
     }
 }
 
+tasks.register("prepareBukkitJars") {
+    group = "verification"
+    description = "Prepare Bukkit plugin JARs for E2E tests"
+    dependsOn("copyBanManagerBukkitJar", "copyWebEnhancerBukkitJar")
+}
+
 createPlatformTestTask(
     "testBukkit",
     "bukkit",
-    ":BanManagerWebEnhancerBukkit:shadowJar",
+    "prepareBukkitJars",
     "Run Bukkit E2E tests in Docker"
 )
 
 fabricVersions.forEach { version ->
     val versionSuffix = version.mcVersion.replace(".", "_")
 
+    tasks.register("prepareFabric_${versionSuffix}Jars") {
+        group = "verification"
+        description = "Prepare Fabric ${version.mcVersion} plugin JARs for E2E tests"
+        dependsOn("copyBanManagerFabric_${versionSuffix}Jar", "copyWebEnhancerFabric_${versionSuffix}Jar")
+    }
+
     createPlatformTestTask(
         "testFabric_${versionSuffix}",
         "fabric",
-        ":fabric:${version.mcVersion}:remapJar",
+        "prepareFabric_${versionSuffix}Jars",
         "Run Fabric ${version.mcVersion} E2E tests in Docker",
         mapOf(
             "MC_VERSION" to version.mcVersion,
@@ -74,7 +156,7 @@ fabricVersions.forEach { version ->
 createPlatformTestTask(
     "testFabric",
     "fabric",
-    ":fabric:1.21.4:remapJar",
+    "prepareFabric_1_21_4Jars",
     "Run Fabric E2E tests in Docker (latest: 1.21.4)",
     mapOf(
         "MC_VERSION" to "1.21.4",
@@ -110,7 +192,7 @@ tasks.register<Exec>("startBukkit") {
     group = "verification"
     description = "Start the Bukkit test server without running tests (for debugging)"
 
-    dependsOn(":BanManagerWebEnhancerBukkit:shadowJar")
+    dependsOn("prepareBukkitJars")
 
     workingDir = file("platforms/bukkit")
     commandLine("docker", "compose", "up", "-d", "mariadb", "paper")
@@ -145,7 +227,7 @@ fun createFabricDebugTasks(mcVersion: String, javaImage: String, fabricLoader: S
         group = "verification"
         description = "Start the Fabric $mcVersion test server without running tests (for debugging)"
 
-        dependsOn(":fabric:${mcVersion}:remapJar")
+        dependsOn("prepareFabric_${versionSuffix}Jars")
 
         workingDir = file("platforms/fabric")
         envVars.forEach { (key, value) -> environment(key, value) }
@@ -180,7 +262,7 @@ tasks.register<Exec>("startFabric") {
     group = "verification"
     description = "Start the Fabric test server without running tests (for debugging) - latest: 1.21.4"
 
-    dependsOn(":fabric:1.21.4:remapJar")
+    dependsOn("prepareFabric_1_21_4Jars")
 
     workingDir = file("platforms/fabric")
     environment("MC_VERSION", "1.21.4")
