@@ -101,6 +101,7 @@ tasks.named<ShadowJar>("shadowJar") {
         include(dependency(":BanManagerWebEnhancerCommon"))
         include(dependency(":BanManagerWebEnhancerLibs"))
         include(dependency("org.bstats:.*:.*"))
+        exclude(dependency("org.apache.logging.log4j:"))
 
         relocate("org.bstats", "me.confuser.banmanager.webenhancer.common.bstats")
     }
