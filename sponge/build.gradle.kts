@@ -118,6 +118,7 @@ tasks.named<ShadowJar>("shadowJar") {
     exclude("org/apache/logging/**")
     exclude("Log4j-**")
     exclude("META-INF/org/apache/logging/**")
+    exclude("com/google/**")
 
     minimize {
         exclude(dependency("org.bstats:.*:.*"))

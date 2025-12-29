@@ -28,8 +28,10 @@ public class ReportListener {
 
     @Listener(order = Order.POST)
     public void notifyOnReport(PlayerReportedEvent event) {
+        plugin.getFileLogReader().readNewEntries();
+
         PlayerReportData report = event.getReport();
-        Queue<LogData> queue = plugin.getAppender().getQueue();
+        Queue<LogData> queue = plugin.getLogQueue();
 
         synchronized (queue) {
             Iterator<LogData> iterator = queue.iterator();

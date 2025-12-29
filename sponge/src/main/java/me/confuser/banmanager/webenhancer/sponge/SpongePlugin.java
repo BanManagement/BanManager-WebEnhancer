@@ -6,13 +6,14 @@ import me.confuser.banmanager.common.CommonLogger;
 import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
+import me.confuser.banmanager.common.configuration.InvalidConfigurationException;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
 import me.confuser.banmanager.sponge.PluginLogger;
 import me.confuser.banmanager.sponge.SpongeScheduler;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
-import me.confuser.banmanager.webenhancer.sponge.listeners.LogServerAppender;
+import me.confuser.banmanager.webenhancer.common.data.LogData;
+import me.confuser.banmanager.webenhancer.sponge.listeners.FileLogReader;
 import me.confuser.banmanager.webenhancer.sponge.listeners.ReportListener;
-import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.api.Server;
 import org.spongepowered.api.Sponge;
@@ -32,6 +33,7 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 
 @Plugin("banmanager-webenhancer")
 public class SpongePlugin {
@@ -50,11 +52,12 @@ public class SpongePlugin {
 
     private String[] configs = new String[]{
         "config.yml",
-        "messages.yml"
+        "messages.yml",
+        "sponge.yml"
     };
 
     @Getter
-    private LogServerAppender appender;
+    private FileLogReader fileLogReader;
 
     @Inject
     public SpongePlugin(Logger logger) {
@@ -92,10 +95,6 @@ public class SpongePlugin {
     public void onServerStopping(StoppingEngineEvent<Server> event) {
         if (scheduler != null) {
             scheduler.shutdown();
-        }
-
-        if (appender != null) {
-            ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).removeAppender(appender);
         }
     }
 
@@ -166,10 +165,33 @@ public class SpongePlugin {
     }
 
     public void setupListeners() {
-        appender = new LogServerAppender(plugin);
-        ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addAppender(appender);
+        File serverDir = dataFolder.toFile().getParentFile().getParentFile();
+        String logFilePath = loadLogFilePath();
+        fileLogReader = new FileLogReader(plugin, serverDir, logFilePath);
+
+        logger.info("Reading server logs from: " + fileLogReader.getLogFile().getAbsolutePath());
+
+        scheduler.runAsyncRepeating(() -> fileLogReader.readNewEntries(), Duration.ofSeconds(1), Duration.ofSeconds(1));
 
         Sponge.eventManager().registerListeners(pluginContainer, new ReportListener(this));
+    }
+
+    private String loadLogFilePath() {
+        File spongeConfig = new File(dataFolder.toFile(), "sponge.yml");
+        if (!spongeConfig.exists()) {
+            return "";
+        }
+        try {
+            YamlConfiguration config = new YamlConfiguration();
+            config.load(spongeConfig);
+            return config.getString("logFile", "");
+        } catch (IOException | InvalidConfigurationException e) {
+            return "";
+        }
+    }
+
+    public java.util.Queue<LogData> getLogQueue() {
+        return fileLogReader != null ? fileLogReader.getQueue() : new java.util.LinkedList<>();
     }
 
     private InputStream getResourceAsStream(String resource) {
