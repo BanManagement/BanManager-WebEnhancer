@@ -101,7 +101,6 @@ tasks.named<ShadowJar>("shadowJar") {
         include(dependency(":BanManagerWebEnhancerCommon"))
         include(dependency(":BanManagerWebEnhancerLibs"))
         include(dependency("org.bstats:.*:.*"))
-        exclude(dependency("org.apache.logging.log4j:"))
 
         relocate("org.bstats", "me.confuser.banmanager.webenhancer.common.bstats")
     }
@@ -116,6 +115,9 @@ tasks.named<ShadowJar>("shadowJar") {
     exclude("org/jetbrains/**")
     exclude("**/module-info.class")
     exclude("*.yml")
+    exclude("org/apache/logging/**")
+    exclude("Log4j-**")
+    exclude("META-INF/org/apache/logging/**")
 
     minimize {
         exclude(dependency("org.bstats:.*:.*"))
