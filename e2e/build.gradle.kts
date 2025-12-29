@@ -126,7 +126,9 @@ val fabricVersions = listOf(
 data class SpongeVersion(val mcVersion: String, val javaImage: String, val spongeVersion: String)
 
 val spongeVersions = listOf(
-    SpongeVersion("1.20.6", "java21", "1.20.6-11.0.0")
+    SpongeVersion("1.20.6", "java21", "1.20.6-11.0.0"),
+    SpongeVersion("1.21.1", "java21", "1.21.1-12.0.2"),
+    SpongeVersion("1.21.3", "java21", "1.21.3-13.0.0")
 )
 
 fun createPlatformTestTask(
