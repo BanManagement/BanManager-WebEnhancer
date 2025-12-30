@@ -27,6 +27,15 @@ public class PinCommand extends CommonCommand {
     if (sender.isConsole()) return false;
     if (parser.getArgs().length != 0) return false;
 
+    // Check rate limit before async work
+    if (plugin.getPlayerPinStorage().isRateLimited(sender.getData().getUUID())) {
+      long remaining = plugin.getPlayerPinStorage().getRateLimitRemaining(sender.getData().getUUID());
+      Message.get("pin.rateLimited")
+          .set("seconds", String.valueOf(remaining))
+          .sendTo(sender);
+      return true;
+    }
+
     getPlugin().getScheduler().runAsync(() -> {
       PlayerData player = null;
 

@@ -5,21 +5,12 @@ import {
   opPlayer,
   sleep,
   getPlayerPinCount,
-  getAllPlayerPins,
   clearPlayerPins,
   closeDatabase
 } from './helpers'
 
-describe('Pin Cache Behavior', () => {
+describe('Pin Rate Limiting Behavior', () => {
   let playerBot: TestBot
-
-  beforeAll(async () => {
-    playerBot = await createBot('PinCachePlayer')
-    await sleep(2000)
-    await opPlayer('PinCachePlayer')
-    await sleep(500)
-    await clearPlayerPins()
-  })
 
   afterAll(async () => {
     await playerBot?.disconnect()
@@ -27,23 +18,23 @@ describe('Pin Cache Behavior', () => {
     await closeDatabase()
   })
 
-  beforeEach(async () => {
-    await clearPlayerPins()
+  test('rate limit prevents rapid pin generation', async () => {
+    playerBot = await createBot('RateLimitTest')
+    await sleep(2000)
+    await opPlayer('RateLimitTest')
     await sleep(500)
-  })
 
-  test('same pin is returned within 5-minute cache window', async () => {
-    // First /bmpin call
+    // First /bmpin call - should succeed
     playerBot.clearSystemMessages()
     await playerBot.sendChat('/bmpin')
 
-    // Wait for the expiry message first
+    // Wait for the expiry message (indicates success)
     const firstResponse = await playerBot.waitForSystemMessage('expires', 10000)
     console.log(`First call - Received: ${firstResponse.message}`)
 
     await sleep(500)
 
-    // Get all system messages and find the 6-digit pin
+    // Get the first pin
     const firstMessages = playerBot.getSystemMessages()
     let actualFirstPin: string | undefined
     for (const msg of firstMessages) {
@@ -54,39 +45,34 @@ describe('Pin Cache Behavior', () => {
       }
     }
     console.log(`First call - Actual pin: ${actualFirstPin ?? 'not found'}`)
+    expect(actualFirstPin).toBeDefined()
 
     await sleep(1000)
 
-    // Second /bmpin call (should return cached pin)
+    // Second /bmpin call immediately - should be rate limited
     playerBot.clearSystemMessages()
     await playerBot.sendChat('/bmpin')
 
-    const secondResponse = await playerBot.waitForSystemMessage('expires', 10000)
-    console.log(`Second call - Received: ${secondResponse.message}`)
+    // Should receive rate limit message
+    const rateLimitResponse = await playerBot.waitForSystemMessage('wait', 10000)
+    console.log(`Second call - Rate limit message: ${rateLimitResponse.message}`)
 
-    await sleep(500)
+    expect(rateLimitResponse.message).toContain('wait')
+    expect(rateLimitResponse.message).toContain('seconds')
 
-    // Get all system messages and find the 6-digit pin
-    const secondMessages = playerBot.getSystemMessages()
-    let actualSecondPin: string | undefined
-    for (const msg of secondMessages) {
-      const match = msg.message.match(/^\d{6}$/)
-      if (match != null) {
-        actualSecondPin = match[0]
-        break
-      }
-    }
-    console.log(`Second call - Actual pin: ${actualSecondPin ?? 'not found'}`)
-
-    // The pins should be the same (cached)
-    if (actualFirstPin != null && actualSecondPin != null) {
-      expect(actualFirstPin).toBe(actualSecondPin)
-      console.log(`Pins match as expected (cache working): ${actualFirstPin}`)
-    }
+    await playerBot.disconnect()
   }, 30000)
 
   test('pin is stored in database on first request', async () => {
-    const initialCount = await getPlayerPinCount('PinCachePlayer')
+    // Use a unique player for this test (max 16 chars)
+    playerBot = await createBot('PinDbTest')
+    await sleep(2000)
+    await opPlayer('PinDbTest')
+    await sleep(500)
+    await clearPlayerPins()
+    await sleep(500)
+
+    const initialCount = await getPlayerPinCount('PinDbTest')
     console.log(`Initial pin count: ${initialCount}`)
 
     playerBot.clearSystemMessages()
@@ -94,19 +80,22 @@ describe('Pin Cache Behavior', () => {
     await playerBot.waitForSystemMessage('expires', 10000)
     await sleep(1000)
 
-    const newCount = await getPlayerPinCount('PinCachePlayer')
-    // Pin count should increase by at least 1 (could be more if previous test created one)
-    expect(newCount).toBeGreaterThanOrEqual(initialCount)
+    const newCount = await getPlayerPinCount('PinDbTest')
+    // Pin count should be exactly 1 (old pins deleted before new one created)
+    expect(newCount).toBe(1)
     console.log(`Pin count after /bmpin: ${newCount}`)
-  }, 20000)
 
-  test('only one pin is stored for multiple cached requests', async () => {
-    // Clear and wait for cache to be empty
+    await playerBot.disconnect()
+  }, 30000)
+
+  test('new pin generation deletes old pins for same player', async () => {
+    // Use a unique player for this test (max 16 chars)
+    playerBot = await createBot('PinDelTest')
+    await sleep(2000)
+    await opPlayer('PinDelTest')
+    await sleep(500)
     await clearPlayerPins()
     await sleep(500)
-
-    const initialCount = await getPlayerPinCount('PinCachePlayer')
-    console.log(`Initial pin count after clear: ${initialCount}`)
 
     // First call creates a pin
     playerBot.clearSystemMessages()
@@ -114,24 +103,25 @@ describe('Pin Cache Behavior', () => {
     await playerBot.waitForSystemMessage('expires', 10000)
     await sleep(500)
 
-    const afterFirstCall = await getPlayerPinCount('PinCachePlayer')
+    const afterFirstCall = await getPlayerPinCount('PinDelTest')
     console.log(`Pin count after first call: ${afterFirstCall}`)
+    expect(afterFirstCall).toBe(1)
 
-    // Make two more /bmpin calls (should use cache)
-    for (let i = 0; i < 2; i++) {
-      playerBot.clearSystemMessages()
-      await playerBot.sendChat('/bmpin')
-      await playerBot.waitForSystemMessage('expires', 10000)
-      await sleep(500)
-    }
+    // Wait for rate limit to expire (30 seconds)
+    console.log('Waiting 31 seconds for rate limit to expire...')
+    await sleep(31000)
 
-    await sleep(1000)
+    // Second call should delete old pin and create new one
+    playerBot.clearSystemMessages()
+    await playerBot.sendChat('/bmpin')
+    await playerBot.waitForSystemMessage('expires', 10000)
+    await sleep(500)
 
-    // Should still have the same count (cached, not generating new ones)
-    const finalCount = await getPlayerPinCount('PinCachePlayer')
-    console.log(`Final pin count: ${finalCount}`)
+    // Should still have only 1 pin (old one was deleted)
+    const finalCount = await getPlayerPinCount('PinDelTest')
+    console.log(`Pin count after second call: ${finalCount}`)
+    expect(finalCount).toBe(1)
 
-    // Final count should equal the count after first call (no new pins generated)
-    expect(finalCount).toBe(afterFirstCall)
-  }, 30000)
+    await playerBot.disconnect()
+  }, 70000)
 })
