@@ -1,0 +1,21 @@
+# Paper global config for Velocity proxy backend
+
+_version: 29
+
+proxies:
+  velocity:
+    enabled: true
+    online-mode: false
+    secret: "e2e-testing-secret"
+
+unsupported-settings:
+  allow-permanent-block-break-exploits: false
+  allow-piston-duplication: false
+
+messages:
+  no-permission: "&cI'm sorry, but you do not have permission to perform this command."
+  kick:
+    connection-throttle: "Connection throttled! Please wait before reconnecting."
+
+timings:
+  enabled: false

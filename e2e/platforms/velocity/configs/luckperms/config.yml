@@ -1,0 +1,27 @@
+# LuckPerms config for E2E testing
+
+# Storage method - use file-based storage for simplicity
+storage-method: yaml
+
+# Server name
+server: velocity
+
+# Data settings
+data:
+  address: "localhost"
+  database: "luckperms"
+  username: "root"
+  password: ""
+  pool-settings:
+    maximum-pool-size: 10
+    minimum-idle: 2
+    maximum-lifetime: 1800000
+    connection-timeout: 5000
+  table-prefix: "luckperms_"
+
+# Verbose mode
+verbose: false
+
+# Don't check for updates in e2e tests
+update-task:
+  enabled: false

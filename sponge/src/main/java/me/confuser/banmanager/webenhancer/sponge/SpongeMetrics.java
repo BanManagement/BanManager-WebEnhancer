@@ -7,3 +7,5 @@ public class SpongeMetrics implements CommonMetrics {
     // The plugin container handles metrics registration automatically
     // through the sponge gradle plugin configuration
 }
+
+

@@ -1,0 +1,56 @@
+# Velocity configuration for E2E testing
+# The server bind address
+bind = "0.0.0.0:25577"
+# What should be the MOTD? This gets displayed when the player adds your server to
+# their server list. Only MiniMessage format is accepted.
+motd = "E2E Test Server"
+# Maximum number of players
+show-max-players = 100
+# Online mode (disable for E2E testing)
+online-mode = false
+#Should the proxy enforce the new public key security standard? By default, this is on.
+force-key-authentication = false
+# Player info forwarding mode
+player-info-forwarding-mode = "modern"
+# Announce forge (disable)
+announce-forge = false
+# Ping passthrough
+ping-passthrough = "DISABLED"
+# Enable player address logging
+enable-player-address-logging = true
+# Forced hosts (none for E2E)
+forced-hosts = {}
+#If you are using modern or BungeeGuard IP forwarding, configure a file that contains a unique secret here.
+#The file is expected to be UTF-8 encoded and not empty.
+forwarding-secret-file = "forwarding.secret"
+config-version = "2.7"
+
+# Servers configuration
+[servers]
+	paper = "paper:25565"
+	# Connection order
+	try = ["paper"]
+# Advanced settings
+[advanced]
+	read-timeout = 30000
+	tcp-fast-open = false
+	compression-level = -1
+	compression-threshold = 256
+	login-ratelimit = 0
+	connection-timeout = 5000
+	log-player-connections = true
+	bungee-plugin-message-channel = true
+	show-ping-requests = false
+	#Allows players transferred from other hosts via the
+	#Transfer packet (Minecraft 1.20.5) to be received.
+	accepts-transfers = false
+	failover-on-unexpected-server-disconnect = true
+	announce-proxy-commands = true
+	haproxy-protocol = false
+	log-command-executions = true
+# Query settings
+[query]
+	port = 25577
+	show-plugins = false
+	map = "Velocity"
+	enabled = false

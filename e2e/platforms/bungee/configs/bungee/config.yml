@@ -1,0 +1,55 @@
+network_compression_threshold: 256
+remote_ping_timeout: 5000
+online_mode: false
+remote_ping_cache: -1
+forge_support: false
+max_packets_per_second: 4096
+ip_forward: true
+disabled_commands:
+- disabledcommandhere
+max_packets_data_per_second: 33554432
+reject_transfers: false
+player_limit: -1
+connection_throttle: 0
+connection_throttle_limit: 0
+prevent_proxy_connections: false
+log_commands: false
+log_pings: true
+stats: 3739348c-bd58-47f7-ae21-fd4756b5bcfc
+groups:
+  admin:
+  - admin
+servers:
+  paper:
+    motd: '&1Backend Server'
+    address: paper:25565
+    restricted: false
+permissions:
+  default:
+  - bungeecord.command.server
+  - bungeecord.command.list
+  - bm.*
+  admin:
+  - bungeecord.command.alert
+  - bungeecord.command.end
+  - bungeecord.command.ip
+  - bungeecord.command.reload
+listeners:
+- query_port: 25577
+  motd: '&1E2E Test BungeeCord'
+  tab_list: GLOBAL_PING
+  query_enabled: false
+  proxy_protocol: false
+  forced_hosts:
+    pvp.md-5.net: pvp
+  ping_passthrough: false
+  priorities:
+  - paper
+  bind_local_address: true
+  host: 0.0.0.0:25577
+  max_players: 1
+  tab_size: 60
+  force_default_server: false
+enforce_secure_profile: false
+server_connect_timeout: 5000
+timeout: 30000

@@ -56,10 +56,11 @@ tasks.named<ShadowJar>("shadowJar") {
     dependencies {
         include(dependency(":BanManagerWebEnhancerCommon"))
         include(dependency(":BanManagerWebEnhancerLibs"))
-        relocate("org.bstats", "me.confuser.banmanager.webenhancer.common.bstats") {
-            include(dependency("org.bstats:"))
-        }
+        include(dependency("org.bstats:bstats-velocity:.*"))
+        include(dependency("org.bstats:bstats-base:.*"))
     }
+
+    relocate("org.bstats", "me.confuser.banmanager.webenhancer.common.bstats")
 
     exclude("GradleStart**")
     exclude(".cache");
