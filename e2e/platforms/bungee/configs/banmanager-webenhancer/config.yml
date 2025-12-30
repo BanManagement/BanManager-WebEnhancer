@@ -1,0 +1,14 @@
+#
+# Number of lines to log with each report
+tables:
+  logs: bm_server_logs
+  reportLogs: bm_report_logs
+  playerPins: bm_player_pins
+lines: 30
+ignoreContains:
+- 'issued server command: /report'
+- has been reported by
+- '[BanManager]'
+- '[PlugMan]'
+- Metrics
+- For help, type "help"

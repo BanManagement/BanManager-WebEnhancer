@@ -31,6 +31,10 @@ e2e/tests/*.log
 e2e/tests/coverage/
 e2e/jars/
 
+# E2E runtime-generated files (LuckPerms libs, plugin data, etc.)
+e2e/platforms/**/luckperms/libs/
+e2e/platforms/**/luckperms/*.json
+
 dependency-reduced-pom.xml
 
 # Fabric/Loom

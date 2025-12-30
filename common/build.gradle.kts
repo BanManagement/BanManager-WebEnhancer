@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    jacoco
 }
 
 applyPlatformAndCoreConfiguration()
@@ -23,4 +24,18 @@ tasks.withType<Test>().configureEach {
     useJUnit()
     maxHeapSize = "512m"
     forkEvery = 1  // Fork a new JVM for each test class to prevent memory accumulation
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco"))
+    }
 }

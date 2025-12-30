@@ -1,0 +1,11 @@
+# Default group permissions for E2E testing
+name: default
+permissions:
+  # Allow all BanManager commands for testing
+  - bm.*
+  # Allow viewing player info
+  - bm.info
+  # Allow report notifications
+  - bm.notify.report
+  # Allow duplicate IP notifications
+  - bm.notify.duplicateips

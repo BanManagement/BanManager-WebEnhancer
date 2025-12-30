@@ -47,10 +47,8 @@ public class CommonPlayerDeniedListenerTest {
         Message message = mock(Message.class);
         when(message.toString()).thenReturn("Your login pin is: [pin]");
 
-        // Execute
         listener.handlePin(player, message);
 
-        // Verify - message.set() should be called with the pin
         verify(message).set("pin", "123456");
     }
 
@@ -60,13 +58,9 @@ public class CommonPlayerDeniedListenerTest {
         Message message = mock(Message.class);
         when(message.toString()).thenReturn("You have been banned!");
 
-        // Execute
         listener.handlePin(player, message);
 
-        // Verify - getValidPin should NOT be called since message doesn't contain [pin]
         verify(playerPinStorage, never()).getValidPin(any());
-
-        // Verify set was never called
         verify(message, never()).set(anyString(), anyString());
     }
 
@@ -79,10 +73,8 @@ public class CommonPlayerDeniedListenerTest {
         Message message = mock(Message.class);
         when(message.toString()).thenReturn("Your login pin is: [pin]");
 
-        // Execute - should not throw
         listener.handlePin(player, message);
 
-        // Verify - set should NOT be called when pin is null
         verify(message, never()).set(anyString(), anyString());
     }
 }

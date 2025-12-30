@@ -2,6 +2,8 @@ import mineflayer, { Bot } from 'mineflayer'
 
 const SERVER_HOST = process.env.SERVER_HOST ?? 'localhost'
 const SERVER_PORT = parseInt(process.env.SERVER_PORT ?? '25565', 10)
+// Specify version for proxy compatibility (avoids version mismatch errors)
+const MC_VERSION = process.env.MC_VERSION ?? undefined
 
 /**
  * Extract text from a kick reason (string on Bukkit, ChatMessage object on Fabric)
@@ -52,22 +54,27 @@ export class TestBot {
   private bot: Bot | null = null
   private chatMessages: ChatMessage[] = []
   private systemMessages: SystemMessage[] = []
-  private readonly username: string
+  private readonly _username: string
 
   constructor (username: string) {
-    this.username = username
+    this._username = username
+  }
+
+  get username (): string {
+    return this._username
   }
 
   async connect (): Promise<void> {
     return await new Promise((resolve, reject) => {
-      console.log(`Connecting bot ${this.username} to ${SERVER_HOST}:${SERVER_PORT}`)
+      console.log(`Connecting bot ${this._username} to ${SERVER_HOST}:${SERVER_PORT}`)
 
       this.bot = mineflayer.createBot({
         host: SERVER_HOST,
         port: SERVER_PORT,
-        username: this.username,
+        username: this._username,
         auth: 'offline',
-        hideErrors: false
+        hideErrors: false,
+        version: MC_VERSION
       })
 
       const timeout = setTimeout(() => {
@@ -76,7 +83,7 @@ export class TestBot {
 
       this.bot.once('spawn', () => {
         clearTimeout(timeout)
-        console.log(`Bot ${this.username} spawned successfully`)
+        console.log(`Bot ${this._username} spawned successfully`)
         resolve()
       })
 
@@ -88,8 +95,8 @@ export class TestBot {
       this.bot.once('kicked', (reason) => {
         clearTimeout(timeout)
         const reasonText = extractKickReason(reason)
-        console.log(`Bot ${this.username} was kicked: ${reasonText}`)
-        reject(new Error(`Bot ${this.username} was kicked: ${reasonText}`))
+        console.log(`Bot ${this._username} was kicked: ${reasonText}`)
+        reject(new Error(`Bot ${this._username} was kicked: ${reasonText}`))
       })
 
       this.bot.on('chat', (username, message) => {
@@ -108,7 +115,7 @@ export class TestBot {
             message: text,
             timestamp: Date.now()
           })
-          console.log(`[${this.username}] System: ${text}`)
+          console.log(`[${this._username}] System: ${text}`)
         }
       })
     })
@@ -134,7 +141,7 @@ export class TestBot {
       })
 
       await this.sleep(200)
-      console.log(`Bot ${this.username} disconnected`)
+      console.log(`Bot ${this._username} disconnected`)
     }
   }
 
@@ -142,7 +149,7 @@ export class TestBot {
     if (this.bot == null) {
       throw new Error('Bot not connected')
     }
-    console.log(`Bot ${this.username} sending: ${message}`)
+    console.log(`Bot ${this._username} sending: ${message}`)
     this.bot.chat(message)
   }
 

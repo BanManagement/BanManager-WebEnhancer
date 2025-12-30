@@ -10,10 +10,15 @@ import {
   getLatestReport,
   clearReportLogs,
   deleteReportsForPlayer,
-  closeDatabase
+  closeDatabase,
+  isProxy
 } from './helpers'
 
-describe('Report Log Capture', () => {
+// Log capture tests only run on non-proxy platforms (Bukkit, Fabric, Sponge)
+// Proxies don't have access to server logs
+const describeOrSkip = isProxy() ? describe.skip : describe
+
+describeOrSkip('Report Log Capture', () => {
   let reporterBot: TestBot
   let targetBot: TestBot
 

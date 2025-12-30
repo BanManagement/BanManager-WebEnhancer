@@ -67,6 +67,27 @@ export async function getReportLogs (reportId: number): Promise<ReportLog[]> {
   return rows as ReportLog[]
 }
 
+export interface ReportLogWithMessage {
+  id: number
+  report_id: number
+  log_id: number
+  message: string
+  created: number
+}
+
+export async function getReportLogsWithMessages (reportId: number): Promise<ReportLogWithMessage[]> {
+  const conn = await getConnection()
+  const [rows] = await conn.query<RowDataPacket[]>(
+    `SELECT rl.id, rl.report_id, rl.log_id, sl.message, sl.created
+     FROM bm_report_logs rl
+     JOIN bm_server_logs sl ON rl.log_id = sl.id
+     WHERE rl.report_id = ?
+     ORDER BY sl.created DESC`,
+    [reportId]
+  )
+  return rows as ReportLogWithMessage[]
+}
+
 export async function getLatestReport (): Promise<{ id: number } | null> {
   const conn = await getConnection()
   const [rows] = await conn.query<RowDataPacket[]>(
@@ -116,4 +137,38 @@ export async function deleteReportsForPlayer (playerName: string): Promise<void>
     JOIN bm_players p ON pr.player_id = p.id
     WHERE p.name = ?
   `, [playerName])
+}
+
+export async function clearPlayerPins (): Promise<void> {
+  const conn = await getConnection()
+  await conn.query('DELETE FROM bm_player_pins')
+}
+
+export async function getLogCount (): Promise<number> {
+  const conn = await getConnection()
+  const [rows] = await conn.query<RowDataPacket[]>(
+    'SELECT COUNT(*) as count FROM bm_server_logs'
+  )
+  return rows[0]?.count ?? 0
+}
+
+export async function getLogsContaining (text: string): Promise<ServerLog[]> {
+  const conn = await getConnection()
+  const [rows] = await conn.query<RowDataPacket[]>(
+    'SELECT id, message, created FROM bm_server_logs WHERE message LIKE ? ORDER BY created DESC',
+    [`%${text}%`]
+  )
+  return rows as ServerLog[]
+}
+
+export async function getAllPlayerPins (playerName: string): Promise<PlayerPin[]> {
+  const conn = await getConnection()
+  const [rows] = await conn.query<RowDataPacket[]>(`
+    SELECT pp.id, pp.player_id, pp.pin, pp.expires
+    FROM bm_player_pins pp
+    JOIN bm_players p ON pp.player_id = p.id
+    WHERE p.name = ?
+    ORDER BY pp.expires DESC
+  `, [playerName])
+  return rows as PlayerPin[]
 }
