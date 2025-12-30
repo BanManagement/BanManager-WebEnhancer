@@ -1,14 +1,7 @@
-import { TestBot, createBot, sendCommand, disconnectRcon, opPlayer, sleep } from './helpers'
+import { TestBot, createBot, disconnectRcon, opPlayer, sleep, clearPlayerPins } from './helpers'
 
 describe('Pin Command', () => {
   let playerBot: TestBot
-
-  beforeAll(async () => {
-    playerBot = await createBot('PinTestPlayer')
-    await sleep(2000)
-    await opPlayer('PinTestPlayer')
-    await sleep(500)
-  })
 
   afterAll(async () => {
     await playerBot?.disconnect()
@@ -16,34 +9,69 @@ describe('Pin Command', () => {
   })
 
   test('bmpin command returns a 6-digit pin', async () => {
+    // Use a unique player for this test
+    playerBot = await createBot('PinCmdPlayer1')
+    await sleep(2000)
+    await opPlayer('PinCmdPlayer1')
+    await sleep(500)
+
     playerBot.clearSystemMessages()
     await playerBot.sendChat('/bmpin')
 
-    const response = await playerBot.waitForSystemMessage('pin expires', 10000)
-    expect(response.message).toMatch(/\d{6}|expires/)
+    const response = await playerBot.waitForSystemMessage('expires', 10000)
+    expect(response.message).toMatch(/expires/)
     console.log(`Received pin message: ${response.message}`)
-  })
 
-  test('bmpin command generates a new pin each time', async () => {
+    // Also verify we got a 6-digit pin
+    const allMessages = playerBot.getSystemMessages()
+    const pinMessage = allMessages.find(m => /^\d{6}$/.test(m.message))
+    expect(pinMessage).toBeDefined()
+    console.log(`Pin: ${pinMessage?.message}`)
+
+    await playerBot.disconnect()
+  }, 20000)
+
+  test('bmpin command generates a new pin after rate limit expires', async () => {
+    // Use a unique player for this test
+    playerBot = await createBot('PinCmdPlayer2')
+    await sleep(2000)
+    await opPlayer('PinCmdPlayer2')
+    await sleep(500)
+    await clearPlayerPins()
+    await sleep(500)
+
+    // First pin request
     playerBot.clearSystemMessages()
     await playerBot.sendChat('/bmpin')
-    const firstResponse = await playerBot.waitForSystemMessage('pin', 10000)
-    const firstPin = firstResponse.message.match(/\d{6}/)?.[0]
+    await playerBot.waitForSystemMessage('expires', 10000)
 
-    await sleep(1000)
+    const firstMessages = playerBot.getSystemMessages()
+    const firstPin = firstMessages.find(m => /^\d{6}$/.test(m.message))?.message
 
+    expect(firstPin).toBeDefined()
+    expect(firstPin).toMatch(/^\d{6}$/)
+    console.log(`First pin: ${firstPin}`)
+
+    // Wait for rate limit to expire (30 seconds)
+    console.log('Waiting 31 seconds for rate limit to expire...')
+    await sleep(31000)
+
+    // Second pin request
     playerBot.clearSystemMessages()
     await playerBot.sendChat('/bmpin')
-    const secondResponse = await playerBot.waitForSystemMessage('pin', 10000)
-    const secondPin = secondResponse.message.match(/\d{6}/)?.[0]
+    await playerBot.waitForSystemMessage('expires', 10000)
 
-    if (firstPin != null) {
-      expect(firstPin).toMatch(/^\d{6}$/)
-    }
-    if (secondPin != null) {
-      expect(secondPin).toMatch(/^\d{6}$/)
-    }
+    const secondMessages = playerBot.getSystemMessages()
+    const secondPin = secondMessages.find(m => /^\d{6}$/.test(m.message))?.message
 
-    console.log(`First pin: ${firstPin ?? 'not found'}, Second pin: ${secondPin ?? 'not found'}`)
-  })
+    expect(secondPin).toBeDefined()
+    expect(secondPin).toMatch(/^\d{6}$/)
+    console.log(`Second pin: ${secondPin}`)
+
+    // Pins should be different (fresh each time)
+    expect(secondPin).not.toBe(firstPin)
+    console.log(`First pin: ${firstPin}, Second pin: ${secondPin} - different as expected`)
+
+    await playerBot.disconnect()
+  }, 70000)
 })
