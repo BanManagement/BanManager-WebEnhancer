@@ -6,8 +6,6 @@ dependencies {
     "shade"("org.bouncycastle:bcprov-jdk15on:1.70")
     "shade"("org.bouncycastle:bcpkix-jdk15on:1.70")
     "shade"("com.google.guava:guava:17.0")
-    "shade"("org.apache.logging.log4j:log4j-core:2.17.0")
-    "shade"("org.apache.logging.log4j:log4j-api:2.17.0")
 }
 
 tasks.withType<Jar>() {
@@ -27,8 +25,6 @@ tasks.named<ShadowJar>("jar") {
             include(dependency("com.google.guava:guava"))
         }
 
-        include(dependency("org.apache.logging.log4j:log4j-core"))
-        include(dependency("org.apache.logging.log4j:log4j-api"))
         include(dependency("org.bouncycastle:bcpkix-jdk15on"))
     }
 

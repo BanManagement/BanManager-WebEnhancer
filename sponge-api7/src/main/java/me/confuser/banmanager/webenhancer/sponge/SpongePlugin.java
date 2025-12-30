@@ -101,7 +101,6 @@ public class SpongePlugin {
 
     setupListeners();
     setupCommands();
-    setupRunnables();
   }
 
   public CommonLogger getLogger() {
@@ -144,9 +143,6 @@ public class SpongePlugin {
     for (CommonCommand cmd : plugin.getCommands()) {
       new SpongeCommand(this, cmd);
     }
-  }
-
-  public void setupRunnables() {
   }
 
   public void setupListeners() {

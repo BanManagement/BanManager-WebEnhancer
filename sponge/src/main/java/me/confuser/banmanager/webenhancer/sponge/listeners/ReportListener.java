@@ -14,8 +14,10 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.event.Order;
 
 import java.sql.SQLException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
+import me.confuser.banmanager.common.BanManagerPlugin;
 
 public class ReportListener {
     private final SpongePlugin plugin;
@@ -30,24 +32,29 @@ public class ReportListener {
     public void notifyOnReport(PlayerReportedEvent event) {
         plugin.getFileLogReader().readNewEntries();
 
-        PlayerReportData report = event.getReport();
+        List<LogData> logs;
         Queue<LogData> queue = plugin.getLogQueue();
-
         synchronized (queue) {
-            Iterator<LogData> iterator = queue.iterator();
+            logs = new ArrayList<>(queue);
+        }
 
-            // Create many-to-many relationship
-            while (iterator.hasNext()) {
-                LogData log = iterator.next();
+        final int reportId = event.getReport().getId();
 
-                try {
+        BanManagerPlugin.getInstance().getScheduler().runAsync(() -> {
+            try {
+                PlayerReportData report = BanManagerPlugin.getInstance()
+                    .getPlayerReportStorage().queryForId(reportId);
+
+                if (report == null) return;
+
+                for (LogData log : logs) {
                     plugin.getPlugin().getLogStorage().createIfNotExists(log);
                     plugin.getPlugin().getReportLogStorage().create(new ReportLogData(report, log));
-                } catch (SQLException e) {
-                    e.printStackTrace();
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        }
+        });
     }
 
     @Listener(order = Order.POST)

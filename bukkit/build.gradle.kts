@@ -31,6 +31,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
     }
+    compileOnly("org.apache.logging.log4j:log4j-core:2.17.0")
     "shadeOnly"("org.bstats:bstats-bukkit:2.2.1")
 }
 

@@ -1,6 +1,6 @@
 package me.confuser.banmanager.webenhancer.common.runnables;
 
-import me.confuser.banmanager.common.ormlite.dao.CloseableIterator;
+import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
 import me.confuser.banmanager.common.BanManagerPlugin;
 import me.confuser.banmanager.common.runnables.BmRunnable;
 import me.confuser.banmanager.common.util.DateUtils;
@@ -23,19 +23,12 @@ public class ExpiresSync extends BmRunnable {
   public void run() {
     long now = (System.currentTimeMillis() / 1000L) + DateUtils.getTimeDiff();
 
-    CloseableIterator<PlayerPinData> pins = null;
     try {
-      pins = pinStorage.queryBuilder().where().le("expires", now).iterator();
-
-      while (pins.hasNext()) {
-        PlayerPinData pin = pins.next();
-
-        pinStorage.delete(pin);
-      }
+      DeleteBuilder<PlayerPinData, Integer> deleteBuilder = pinStorage.deleteBuilder();
+      deleteBuilder.where().le("expires", now);
+      deleteBuilder.delete();
     } catch (SQLException e) {
       e.printStackTrace();
-    } finally {
-      if (pins != null) pins.closeQuietly();
     }
   }
 }

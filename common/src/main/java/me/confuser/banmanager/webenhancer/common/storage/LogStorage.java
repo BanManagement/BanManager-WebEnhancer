@@ -24,13 +24,50 @@ public class LogStorage extends BaseDaoImpl<LogData, Integer> {
         executeRawNoArgs("ALTER TABLE " + tableConfig.getTableName() + " CHANGE `created` `created` BIGINT UNSIGNED");
       } catch (SQLException e) {
       }
+
+      boolean columnAdded = false;
+      try {
+        executeRawNoArgs("ALTER TABLE " + tableConfig.getTableName() +
+            " ADD COLUMN messageHash CHAR(64)");
+        columnAdded = true;
+      } catch (SQLException e) {
+      }
+
+      try {
+        executeRawNoArgs("CREATE INDEX idx_" + tableConfig.getTableName() +
+            "_created_hash ON " + tableConfig.getTableName() + " (created, messageHash)");
+      } catch (SQLException e) {
+      }
+
+      if (columnAdded) {
+        try {
+          executeRawNoArgs(
+              "UPDATE " + tableConfig.getTableName() +
+              " SET messageHash = SHA2(message, 256)" +
+              " WHERE messageHash IS NULL"
+          );
+          BanManagerPlugin.getInstance().getLogger().info("[WebEnhancer] Log hash migration completed");
+        } catch (SQLException e) {
+          BanManagerPlugin.getInstance().getLogger().info("[WebEnhancer] SQL hash migration skipped (SHA2 not available) - new logs will be indexed");
+        }
+      }
     }
   }
 
   public LogData createIfNotExists(LogData data) throws SQLException {
     QueryBuilder<LogData, Integer> query = queryBuilder();
-    //TODO Will require full table scan because of message, add index
-    query.where().eq("message", data.getMessage()).and().eq("created", data.getCreated());
+
+    if (data.getMessageHash() != null) {
+      query.where()
+          .eq("created", data.getCreated())
+          .and()
+          .eq("messageHash", data.getMessageHash());
+    } else {
+      query.where()
+          .eq("message", data.getMessage())
+          .and()
+          .eq("created", data.getCreated());
+    }
 
     List<LogData> results = query.query();
 
