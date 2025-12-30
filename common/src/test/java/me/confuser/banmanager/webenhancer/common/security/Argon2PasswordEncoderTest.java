@@ -44,7 +44,6 @@ public class Argon2PasswordEncoderTest {
         String encoded1 = encoder.encode(password);
         String encoded2 = encoder.encode(password);
 
-        // Same password should produce different hashes due to random salt
         assertNotEquals("Hashes should differ due to unique salts", encoded1, encoded2);
     }
 
@@ -54,8 +53,6 @@ public class Argon2PasswordEncoderTest {
 
         String encoded = encoder.encode(password);
 
-        // Argon2 hash format: $argon2i$v=19$m=4096,t=3,p=1$salt$hash
-        // The full string should be a reasonable length
         assertTrue("Hash string should be substantial", encoded.length() > 50);
     }
 
@@ -116,8 +113,8 @@ public class Argon2PasswordEncoderTest {
         String encoded1 = encoder.encode("test");
         String encoded2 = encoder2.encode("test");
 
-        // Both should use same format (though different values due to random salt)
-        String format1 = encoded1.substring(0, encoded1.indexOf("$", 9)); // Get prefix before salt
+        String format1 = encoded1.substring(0, encoded1.indexOf("$", 9));
+
         String format2 = encoded2.substring(0, encoded2.indexOf("$", 9));
 
         assertEquals("Both instances should produce same format", format1, format2);

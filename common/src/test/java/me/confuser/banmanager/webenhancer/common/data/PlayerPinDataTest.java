@@ -66,10 +66,7 @@ public class PlayerPinDataTest {
         int generatedPin = pinData.getGeneratedPin();
         String hashedPin = pinData.getPin();
 
-        // Generated pin is plaintext for display
         assertNotEquals("Generated pin should not be 0", 0, generatedPin);
-
-        // Hashed pin is different from plaintext
         assertFalse("Hashed pin should not equal plaintext",
             hashedPin.equals(String.valueOf(generatedPin)));
     }
@@ -103,8 +100,6 @@ public class PlayerPinDataTest {
         PlayerPinData pin2 = new PlayerPinData(player);
         PlayerPinData pin3 = new PlayerPinData(player);
 
-        // While there's a small chance of collision, it's unlikely with 900,000 possibilities
-        // At least 2 of 3 should be different
         boolean atLeastTwoDifferent =
             pin1.getGeneratedPin() != pin2.getGeneratedPin() ||
             pin1.getGeneratedPin() != pin3.getGeneratedPin() ||
