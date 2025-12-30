@@ -1,0 +1,6 @@
+# Sponge-specific configuration (API 11+)
+
+# Path to server log file
+# Leave empty for auto-detection (parses log4j2.xml or uses logs/latest.log)
+# Can be relative to server directory or absolute path
+logFile: ''

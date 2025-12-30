@@ -1,12 +1,9 @@
 package me.confuser.banmanager.webenhancer.sponge;
 
-import org.bstats.sponge.Metrics;
 import me.confuser.banmanager.webenhancer.common.CommonMetrics;
 
 public class SpongeMetrics implements CommonMetrics {
-  private final Metrics metrics;
-
-  public SpongeMetrics(Metrics metrics) {
-    this.metrics = metrics;
-  }
+    // bStats for Sponge API 11+ is handled differently
+    // The plugin container handles metrics registration automatically
+    // through the sponge gradle plugin configuration
 }

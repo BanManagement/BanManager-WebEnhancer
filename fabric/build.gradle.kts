@@ -117,17 +117,19 @@ tasks.named<ShadowJar>("shadowJar") {
     dependencies {
         include(dependency(":BanManagerWebEnhancerCommon"))
         include(dependency(":BanManagerWebEnhancerLibs"))
-        // IMPORTANT: Exclude Log4j - provided by Fabric
-        exclude(dependency("org.apache.logging.log4j:"))
     }
     exclude("GradleStart**")
     exclude(".cache");
     exclude("LICENSE*")
     exclude("META-INF/services/**")
     exclude("META-INF/maven/**")
+    exclude("META-INF/versions/**")
     exclude("org/intellij/**")
     exclude("org/jetbrains/**")
     exclude("/mappings/*")
+    exclude("org/apache/logging/**")
+    exclude("Log4j-**")
+    exclude("META-INF/org/apache/logging/**")
 
     minimize()
 }
