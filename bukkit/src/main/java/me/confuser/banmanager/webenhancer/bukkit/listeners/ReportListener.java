@@ -15,8 +15,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 
 import java.sql.SQLException;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
+import me.confuser.banmanager.common.BanManagerPlugin;
 
 public class ReportListener implements Listener {
   private final BukkitPlugin plugin;
@@ -29,24 +31,29 @@ public class ReportListener implements Listener {
 
   @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
   public void notifyOnReport(PlayerReportedEvent event) {
-    PlayerReportData report = event.getReport();
+    List<LogData> logs;
     Queue<LogData> queue = plugin.getAppender().getQueue();
-
     synchronized (queue) {
-      Iterator<LogData> iterator = queue.iterator();
+      logs = new ArrayList<>(queue);
+    }
 
-      // Create many-to-many relationship
-      while (iterator.hasNext()) {
-        LogData log = iterator.next();
+    final int reportId = event.getReport().getId();
 
-        try {
+    BanManagerPlugin.getInstance().getScheduler().runAsync(() -> {
+      try {
+        PlayerReportData report = BanManagerPlugin.getInstance()
+            .getPlayerReportStorage().queryForId(reportId);
+
+        if (report == null) return;
+
+        for (LogData log : logs) {
           plugin.getPlugin().getLogStorage().createIfNotExists(log);
           plugin.getPlugin().getReportLogStorage().create(new ReportLogData(report, log));
-        } catch (SQLException e) {
-          e.printStackTrace();
         }
+      } catch (SQLException e) {
+        e.printStackTrace();
       }
-    }
+    });
   }
 
   @EventHandler

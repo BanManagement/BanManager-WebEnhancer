@@ -49,7 +49,6 @@ public class BungeePlugin extends Plugin {
 
     setupListeners();
     setupCommands();
-    setupRunnables();
   }
 
   @Override
@@ -101,12 +100,6 @@ public class BungeePlugin extends Plugin {
     }
 
     getLogger().info("Registered commands");
-  }
-
-  public void setupRunnables() {
-//    Runner syncRunner = new Runner(new ExpiresSync(plugin));
-
-//    getServer().getScheduler().runTaskTimerAsynchronously(this, syncRunner, 10L, 10L);
   }
 
   public void setupListeners() {

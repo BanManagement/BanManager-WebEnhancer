@@ -33,7 +33,7 @@ import java.nio.file.Path;
 @Plugin(
         id = "banmanagerwebenhancer",
         name = "BanManagerWebEnhancer",
-        version = "${projectVersion}",
+        version = "@projectVersion@",
         url = "https://banmanagement.com",
         description = "A suite of moderation plugins & apps for Minecraft servers",dependencies = {
         @Dependency(id = "banmanager")},
@@ -84,7 +84,6 @@ public class VelocityPlugin {
                         return;
                 }
 
-                setupRunnables();
                 setupListeners();
                 setupCommands();
 
@@ -143,12 +142,6 @@ public class VelocityPlugin {
                 }
 
                 logger.info("Registered commands");
-        }
-
-        public void setupRunnables() {
-//    Runner syncRunner = new Runner(new ExpiresSync(plugin));
-
-//    getServer().getScheduler().runTaskTimerAsynchronously(this, syncRunner, 10L, 10L);
         }
 
         public void setupListeners() {

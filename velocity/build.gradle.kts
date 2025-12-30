@@ -2,10 +2,15 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     `java-library`
+    id("net.kyori.blossom") version "1.2.0"
 }
 
 applyPlatformAndCoreConfiguration()
 applyShadowConfiguration()
+
+blossom {
+    replaceToken("@projectVersion@", project.ext["internalVersion"])
+}
 
 repositories {
     maven {

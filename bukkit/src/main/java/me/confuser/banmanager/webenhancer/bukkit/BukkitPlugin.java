@@ -57,7 +57,6 @@ public class BukkitPlugin extends JavaPlugin {
 
     setupListeners();
     setupCommands();
-    setupRunnables();
   }
 
   @Override
@@ -108,12 +107,6 @@ public class BukkitPlugin extends JavaPlugin {
         plugin.getLogger().severe("Failed to register /" + cmd.getCommandName() + " command");
       }
     }
-  }
-
-  public void setupRunnables() {
-//    Runner syncRunner = new Runner(new ExpiresSync(plugin));
-
-//    getServer().getScheduler().runTaskTimerAsynchronously(this, syncRunner, 10L, 10L);
   }
 
   public void setupListeners() {

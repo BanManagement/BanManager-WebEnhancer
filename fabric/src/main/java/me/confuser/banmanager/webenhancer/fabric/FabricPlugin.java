@@ -11,9 +11,9 @@ import java.nio.file.Files;
 import org.apache.logging.log4j.LogManager;
 
 import lombok.Getter;
-import me.confuser.banmanager.common.BanManagerPlugin;
 import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
+import me.confuser.banmanager.fabric.FabricScheduler;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
 import me.confuser.banmanager.fabric.FabricCommand;
@@ -37,6 +37,7 @@ public class FabricPlugin implements DedicatedServerModInitializer {
     private PluginInfo pluginInfo;
     @Getter
     private LogServerAppender appender;
+    private FabricScheduler scheduler;
 
     @Override
     public void onInitializeServer() {
@@ -47,11 +48,13 @@ public class FabricPlugin implements DedicatedServerModInitializer {
             return;
         }
 
+        scheduler = new FabricScheduler();
+
         plugin = new WebEnhancerPlugin(
             pluginInfo,
             new PluginLogger(LogManager.getLogger("BanManager-WebEnhancer")),
             getDataFolder(),
-            BanManagerPlugin.getInstance().getScheduler(),
+            scheduler,
             new FabricMetrics()
         );
 
@@ -69,6 +72,10 @@ public class FabricPlugin implements DedicatedServerModInitializer {
     }
 
     private void onServerStopping(MinecraftServer server) {
+        if (scheduler != null) {
+            scheduler.shutdown();
+        }
+
         if (appender != null) {
             ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).removeAppender(appender);
         }

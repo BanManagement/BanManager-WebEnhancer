@@ -11,9 +11,11 @@ import me.confuser.banmanager.webenhancer.common.configs.MessagesConfig;
 import me.confuser.banmanager.webenhancer.common.storage.LogStorage;
 import me.confuser.banmanager.webenhancer.common.storage.PlayerPinStorage;
 import me.confuser.banmanager.webenhancer.common.storage.ReportLogStorage;
+import me.confuser.banmanager.webenhancer.common.runnables.ExpiresSync;
 
 import java.io.File;
 import java.sql.SQLException;
+import java.time.Duration;
 
 public class WebEnhancerPlugin {
   private static WebEnhancerPlugin self;
@@ -58,6 +60,9 @@ public class WebEnhancerPlugin {
       e.printStackTrace();
       throw new Exception("An error occurred attempting to make a database connection, please see stack trace below");
     }
+
+    // Schedule pin cleanup every 60 seconds
+    scheduler.runAsyncRepeating(new ExpiresSync(this), Duration.ofSeconds(60), Duration.ofSeconds(60));
   }
 
   public void setupConfigs() {
