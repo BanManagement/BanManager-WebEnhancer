@@ -36,7 +36,7 @@ sponge {
         dependency("banmanager") {
             loadOrder(org.spongepowered.plugin.metadata.model.PluginDependency.LoadOrder.AFTER)
             optional(false)
-            version("7.10.0")
+            version("7.11.0-SNAPSHOT")
         }
     }
 }
@@ -54,7 +54,7 @@ configurations {
 
 dependencies {
     compileOnly("org.spongepowered:spongeapi:11.0.0")
-    compileOnly("me.confuser.banmanager:BanManagerSponge:7.10.0")
+    compileOnly("me.confuser.banmanager:BanManagerSponge:7.11.0-SNAPSHOT")
 
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
@@ -78,7 +78,7 @@ tasks.named<Copy>("processResources") {
     inputs.property("internalVersion", internalVersion)
 
     filesMatching("plugin.yml") {
-        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.sponge.SpongePlugin")
+        expand(mapOf("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.sponge.SpongePlugin"))
     }
 }
 
