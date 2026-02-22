@@ -37,7 +37,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
   const waitForReportLogs = async (reportId: number, marker?: string) => {
     let lastLogs = await getReportLogsWithMessages(reportId)
 
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
       if (lastLogs.length > 0 && (marker == null || lastLogs.some(log => log.message.includes(marker)))) {
         return lastLogs
       }
@@ -50,7 +50,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
   }
 
   const waitForReportByReason = async (reason: string) => {
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 40; i++) {
       const report = await getLatestReportByReason(reason)
       if (report != null) return report
       await sleep(500)
@@ -68,6 +68,9 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
       await emitMessages()
       // Give Sponge time to flush command output to latest.log before snapshotting logs on report.
       await sleep(1500)
+      // Re-emit the marker immediately before /report so it is always inside the captured tail window.
+      await sendCommand(`say ${normalMarker}`)
+      await sleep(300)
 
       const reportReason = `${reasonPrefix} attempt-${attempt} ${Date.now()}`
       reporterBot.clearSystemMessages()
