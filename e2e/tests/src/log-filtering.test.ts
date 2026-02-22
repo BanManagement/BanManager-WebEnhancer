@@ -34,6 +34,21 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
   let reporterBot: TestBot
   let targetBot: TestBot
 
+  const waitForReportLogs = async (reportId: number, marker?: string) => {
+    let lastLogs = await getReportLogsWithMessages(reportId)
+
+    for (let i = 0; i < 20; i++) {
+      if (lastLogs.length > 0 && (marker == null || lastLogs.some(log => log.message.includes(marker)))) {
+        return lastLogs
+      }
+
+      await sleep(500)
+      lastLogs = await getReportLogsWithMessages(reportId)
+    }
+
+    return lastLogs
+  }
+
   beforeAll(async () => {
     reporterBot = await createBot('FilterReporter')
     await sleep(2000)
@@ -74,7 +89,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     expect(report).not.toBeNull()
 
     if (report != null) {
-      const logs = await getReportLogsWithMessages(report.id)
+      const logs = await waitForReportLogs(report.id, normalMessage)
       console.log(`Report ${report.id} has ${logs.length} associated logs`)
 
       // Verify the normal message is in the logs
@@ -102,7 +117,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     expect(report).not.toBeNull()
 
     if (report != null) {
-      const logs = await getReportLogsWithMessages(report.id)
+      const logs = await waitForReportLogs(report.id, normalMessage)
       console.log(`Report ${report.id} has ${logs.length} associated logs`)
 
       // Verify [BanManager] message is NOT in logs (filtered)
@@ -134,7 +149,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     expect(report).not.toBeNull()
 
     if (report != null) {
-      const logs = await getReportLogsWithMessages(report.id)
+      const logs = await waitForReportLogs(report.id, normalMessage)
 
       // Metrics message should be filtered
       const metricsFound = logs.some(log => log.message.includes(metricsMessage))
@@ -165,7 +180,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     expect(report).not.toBeNull()
 
     if (report != null) {
-      const logs = await getReportLogsWithMessages(report.id)
+      const logs = await waitForReportLogs(report.id, normalMessage)
 
       // [PlugMan] message should be filtered
       const plugmanFound = logs.some(log => log.message.includes(plugmanMessage))
@@ -196,7 +211,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     expect(report).not.toBeNull()
 
     if (report != null) {
-      const logs = await getReportLogsWithMessages(report.id)
+      const logs = await waitForReportLogs(report.id, normalMessage)
 
       // Report command message should be filtered
       const reportCmdFound = logs.some(log => log.message.includes(reportMessage))
