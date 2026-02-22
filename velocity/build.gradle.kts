@@ -2,14 +2,20 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     `java-library`
-    id("net.kyori.blossom") version "1.2.0"
+    id("net.kyori.blossom") version "2.2.0"
 }
 
 applyPlatformAndCoreConfiguration()
 applyShadowConfiguration()
 
-blossom {
-    replaceToken("@projectVersion@", project.ext["internalVersion"])
+sourceSets {
+    main {
+        blossom {
+            resources {
+                property("@projectVersion@", (project.ext["internalVersion"] as String))
+            }
+        }
+    }
 }
 
 repositories {
@@ -30,7 +36,7 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerVelocity:7.10.0")
+    compileOnly("me.confuser.banmanager:BanManagerVelocity:7.11.0-SNAPSHOT")
 
     compileOnly("com.velocitypowered:velocity-api:3.1.0")
     annotationProcessor("com.velocitypowered:velocity-api:3.1.0")
@@ -40,7 +46,7 @@ dependencies {
 tasks.named<Copy>("processResources") {
     val internalVersion = project.ext["internalVersion"]
     inputs.property("internalVersion", internalVersion)
-    expand("internalVersion" to internalVersion)
+    expand(mapOf("internalVersion" to internalVersion))
 }
 
 tasks.named<Jar>("jar") {

@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FileLogReader {
@@ -28,9 +27,7 @@ public class FileLogReader {
     private long lastPosition = 0;
     private long lastFileSize = 0;
 
-    private static final Pattern LOG_LINE_PATTERN = Pattern.compile(
-        "^\\[(\\d{2}:\\d{2}:\\d{2})\\].*$"
-    );
+    private static final Pattern ANSI_ESCAPE_PATTERN = Pattern.compile("\\u001B\\[[;\\d]*m");
 
     public FileLogReader(WebEnhancerPlugin plugin, File serverDir, String logFilePath) {
         this.plugin = plugin;
@@ -172,12 +169,12 @@ public class FileLogReader {
     }
 
     private void processLine(String line) {
-        if (line == null || line.isEmpty()) {
+        if (line == null) {
             return;
         }
 
-        Matcher matcher = LOG_LINE_PATTERN.matcher(line);
-        if (!matcher.matches()) {
+        line = ANSI_ESCAPE_PATTERN.matcher(line).replaceAll("").trim();
+        if (line.isEmpty()) {
             return;
         }
 

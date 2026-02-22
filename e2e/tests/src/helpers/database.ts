@@ -96,6 +96,15 @@ export async function getLatestReport (): Promise<{ id: number } | null> {
   return rows.length > 0 ? { id: rows[0].id } : null
 }
 
+export async function getLatestReportByReason (reason: string): Promise<{ id: number } | null> {
+  const conn = await getConnection()
+  const [rows] = await conn.query<RowDataPacket[]>(
+    'SELECT id FROM bm_player_reports WHERE reason = ? ORDER BY created DESC, id DESC LIMIT 1',
+    [reason]
+  )
+  return rows.length > 0 ? { id: rows[0].id } : null
+}
+
 export async function getPlayerPinCount (playerName: string): Promise<number> {
   const conn = await getConnection()
   const [rows] = await conn.query<RowDataPacket[]>(`

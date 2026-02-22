@@ -37,6 +37,7 @@ fun registerCopyBanManagerFabricTask(mcVersion: String) {
 registerCopyBanManagerFabricTask("1.20.1")
 registerCopyBanManagerFabricTask("1.21.1")
 registerCopyBanManagerFabricTask("1.21.4")
+registerCopyBanManagerFabricTask("1.21.11")
 
 tasks.register<Copy>("copyBanManagerSpongeJar") {
     group = "verification"
@@ -83,6 +84,7 @@ fun registerCopyWebEnhancerFabricTask(mcVersion: String) {
 registerCopyWebEnhancerFabricTask("1.20.1")
 registerCopyWebEnhancerFabricTask("1.21.1")
 registerCopyWebEnhancerFabricTask("1.21.4")
+registerCopyWebEnhancerFabricTask("1.21.11")
 
 tasks.register<Copy>("copyWebEnhancerSpongeJar") {
     group = "verification"
@@ -161,7 +163,8 @@ data class FabricVersion(val mcVersion: String, val javaImage: String, val fabri
 val fabricVersions = listOf(
     FabricVersion("1.20.1", "java17", "0.16.10"),
     FabricVersion("1.21.1", "java21", "0.16.9"),
-    FabricVersion("1.21.4", "java21", "0.16.9")
+    FabricVersion("1.21.4", "java21", "0.16.9"),
+    FabricVersion("1.21.11", "java21", "0.17.3")
 )
 
 // Sponge version configurations
@@ -200,11 +203,11 @@ fun createPlatformTestTask(
         )
 
         doLast {
-            exec {
-                workingDir = file("platforms/$platformDir")
-                commandLine("docker", "compose", "down", "-v")
-                isIgnoreExitValue = true
-            }
+            ProcessBuilder("docker", "compose", "down", "-v")
+                .directory(file("platforms/$platformDir"))
+                .inheritIO()
+                .start()
+                .waitFor()
         }
     }
 }
@@ -247,12 +250,12 @@ fabricVersions.forEach { version ->
 createPlatformTestTask(
     "testFabric",
     "fabric",
-    "prepareFabric_1_21_4Jars",
-    "Run Fabric E2E tests in Docker (latest: 1.21.4)",
+    "prepareFabric_1_21_11Jars",
+    "Run Fabric E2E tests in Docker (latest: 1.21.11)",
     mapOf(
-        "MC_VERSION" to "1.21.4",
+        "MC_VERSION" to "1.21.11",
         "JAVA_IMAGE" to "java21",
-        "FABRIC_LOADER" to "0.16.9"
+        "FABRIC_LOADER" to "0.17.3"
     )
 )
 
@@ -438,14 +441,14 @@ fabricVersions.forEach { version ->
 
 tasks.register<Exec>("startFabric") {
     group = "verification"
-    description = "Start the Fabric test server without running tests (for debugging) - latest: 1.21.4"
+    description = "Start the Fabric test server without running tests (for debugging) - latest: 1.21.11"
 
-    dependsOn("prepareFabric_1_21_4Jars")
+    dependsOn("prepareFabric_1_21_11Jars")
 
     workingDir = file("platforms/fabric")
-    environment("MC_VERSION", "1.21.4")
+    environment("MC_VERSION", "1.21.11")
     environment("JAVA_IMAGE", "java21")
-    environment("FABRIC_LOADER", "0.16.9")
+    environment("FABRIC_LOADER", "0.17.3")
     commandLine("docker", "compose", "up", "-d", "mariadb", "fabric")
 }
 
@@ -627,11 +630,11 @@ tasks.register<Exec>("logsBungee") {
 tasks.named("clean") {
     doLast {
         listOf("bukkit", "fabric", "sponge", "sponge7", "velocity", "bungee").forEach { platform ->
-            exec {
-                workingDir = file("platforms/$platform")
-                commandLine("docker", "compose", "down", "-v", "--rmi", "local")
-                isIgnoreExitValue = true
-            }
+            ProcessBuilder("docker", "compose", "down", "-v", "--rmi", "local")
+                .directory(file("platforms/$platform"))
+                .inheritIO()
+                .start()
+                .waitFor()
         }
     }
 }

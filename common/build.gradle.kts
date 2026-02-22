@@ -8,8 +8,8 @@ applyPlatformAndCoreConfiguration()
 dependencies {
     api(project(":BanManagerWebEnhancerLibs"))
 
-    api("me.confuser.banmanager:BanManagerCommon:7.10.0")
-    api("me.confuser.banmanager.BanManagerLibs:BanManagerLibs:7.10.0")
+    api("me.confuser.banmanager:BanManagerCommon:7.11.0-SNAPSHOT")
+    api("me.confuser.banmanager.BanManagerLibs:BanManagerLibs:7.11.0-SNAPSHOT")
 
     // Test dependencies
     testImplementation("junit:junit:4.13")

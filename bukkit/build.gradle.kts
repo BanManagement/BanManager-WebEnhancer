@@ -26,7 +26,7 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerBukkit:7.10.0")
+    compileOnly("me.confuser.banmanager:BanManagerBukkit:7.11.0-SNAPSHOT")
 
     compileOnly("org.spigotmc:spigot-api:1.17.1-R0.1-SNAPSHOT") {
         exclude("junit", "junit")
@@ -41,7 +41,7 @@ tasks.named<Copy>("processResources") {
     inputs.property("internalVersion", internalVersion)
 
     filesMatching("plugin.yml") {
-        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin")
+        expand(mapOf("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin"))
     }
 }
 

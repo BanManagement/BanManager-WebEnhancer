@@ -21,8 +21,8 @@ services:
     environment:
       EULA: "TRUE"
       TYPE: "FABRIC"
-      VERSION: "${MC_VERSION:-1.21.4}"
-      FABRIC_LOADER_VERSION: "${FABRIC_LOADER:-0.16.9}"
+      VERSION: "${MC_VERSION:-1.21.11}"
+      FABRIC_LOADER_VERSION: "${FABRIC_LOADER:-0.17.3}"
       ONLINE_MODE: "false"
       # Skip re-downloading server JAR just to verify hash (speeds up cached runs)
       SKIP_SERVER_JAR_HASH_CHECK: "true"
@@ -42,11 +42,11 @@ services:
       COPY_CONFIG_SRC: "/config"
       COPY_CONFIG_DEST: "/data/config"
     volumes:
-      - ../../jars/BanManagerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManager.jar:ro
-      - ../../jars/BanManagerWebEnhancerFabric-mc${MC_VERSION:-1.21.4}.jar:/mods-src/BanManagerWebEnhancer.jar:ro
+      - ../../jars/BanManagerFabric-mc${MC_VERSION:-1.21.11}.jar:/mods-src/BanManager.jar:ro
+      - ../../jars/BanManagerWebEnhancerFabric-mc${MC_VERSION:-1.21.11}.jar:/mods-src/BanManagerWebEnhancer.jar:ro
       - ./configs/banmanager:/config/banmanager:ro
       - ./configs/banmanager-webenhancer:/config/banmanager-webenhancer:ro
-      - fabric-data-${MC_VERSION:-1.21.4}:/data
+      - fabric-data-${MC_VERSION:-1.21.11}:/data
     depends_on:
       mariadb:
         condition: service_healthy
@@ -72,7 +72,7 @@ services:
       RCON_HOST: fabric
       RCON_PORT: 25575
       RCON_PASSWORD: testing
-      MC_VERSION: "${MC_VERSION:-1.21.4}"
+      MC_VERSION: "${MC_VERSION:-1.21.11}"
       DB_HOST: mariadb
       DB_PORT: 3306
       DB_NAME: banmanager
@@ -92,4 +92,5 @@ volumes:
   fabric-data-1.20.1:
   fabric-data-1.21.1:
   fabric-data-1.21.4:
+  fabric-data-1.21.11:
   jest-cache:

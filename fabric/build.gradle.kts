@@ -75,14 +75,17 @@ dependencies {
         isTransitive = true
     }
 
-    // BanManager Fabric (compileOnly - provided at runtime)
-    modCompileOnly("me.confuser.banmanager:BanManagerFabric-mc$minecraftVersion:7.10.0")
+    // BanManager Fabric (compileOnly - provided at runtime).
+    // 1.21.11 runtime support exists in BanManager, but public artifacts may lag behind;
+    // compile against 1.21.4 API-compatible classes until 1.21.11 artifacts are published.
+    val banManagerCompileMcVersion = if (minecraftVersion == "1.21.11") "1.21.4" else minecraftVersion
+    modCompileOnly("me.confuser.banmanager:BanManagerFabric-mc$banManagerCompileMcVersion:7.11.0-SNAPSHOT")
 }
 
 tasks.named<Copy>("processResources") {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-    val internalVersion = project.ext["internalVersion"]
+    val internalVersion = project.ext["internalVersion"] as String
     val commandApiModule = if (isPreV21) "fabric-command-api-v1" else "fabric-command-api-v2"
 
     inputs.property("internalVersion", internalVersion)
@@ -111,7 +114,7 @@ tasks.named<ShadowJar>("shadowJar") {
     configurations = listOf(project.configurations["shadeOnly"], project.configurations["runtimeClasspath"])
 
     archiveBaseName.set("BanManagerWebEnhancerFabric")
-    archiveClassifier.set("mc$minecraftVersion")
+    archiveClassifier.set("dev")
     archiveVersion.set("")
 
     dependencies {

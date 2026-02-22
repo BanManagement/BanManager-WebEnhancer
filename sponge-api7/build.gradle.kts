@@ -6,14 +6,20 @@ import org.spongepowered.plugin.metadata.model.PluginDependency
 plugins {
     `java-library`
     id("org.spongepowered.gradle.plugin")
-    id("net.kyori.blossom") version "1.2.0"
+    id("net.kyori.blossom") version "2.2.0"
 }
 
 applyPlatformAndCoreConfiguration()
 applyShadowConfiguration()
 
-blossom {
-    replaceToken("@projectVersion@", project.ext["internalVersion"])
+sourceSets {
+    main {
+        blossom {
+            resources {
+                property("@projectVersion@", (project.ext["internalVersion"] as String))
+            }
+        }
+    }
 }
 
 sponge {
@@ -63,7 +69,7 @@ configurations {
 
 dependencies {
     compileOnly("org.spongepowered:spongeapi:7.2.0")
-    compileOnly("me.confuser.banmanager:BanManagerSponge7:7.10.0")
+    compileOnly("me.confuser.banmanager:BanManagerSponge7:7.11.0-SNAPSHOT")
     compileOnly("org.apache.logging.log4j:log4j-core:2.17.0")
 
     api(project(":BanManagerWebEnhancerCommon")) {
@@ -85,7 +91,7 @@ tasks.named<Copy>("processResources") {
     inputs.property("internalVersion", internalVersion)
 
     filesMatching("plugin.yml") {
-        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.sponge.SpongePlugin")
+        expand(mapOf("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.sponge.SpongePlugin"))
     }
 }
 

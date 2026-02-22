@@ -4,6 +4,7 @@ import lombok.Getter;
 import me.confuser.banmanager.common.*;
 import me.confuser.banmanager.common.api.BmAPI;
 import me.confuser.banmanager.common.commands.CommonCommand;
+import me.confuser.banmanager.common.configs.Config;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.webenhancer.common.commands.PinCommand;
 import me.confuser.banmanager.webenhancer.common.configs.DefaultConfig;
@@ -66,10 +67,22 @@ public class WebEnhancerPlugin {
   }
 
   public void setupConfigs() {
-    new MessagesConfig(dataFolder, logger).load();
+    loadConfigCompat(new MessagesConfig(dataFolder, logger));
 
     config = new DefaultConfig(dataFolder, logger);
-    config.load();
+    loadConfigCompat(config);
+  }
+
+  /**
+   * Supports BanManager config API changes where Config#load() can vary by return type.
+   */
+  private void loadConfigCompat(Config config) {
+    try {
+      config.getClass().getMethod("load").invoke(config);
+    } catch (ReflectiveOperationException e) {
+      logger.severe("Failed to load config " + config.getClass().getSimpleName() + ": " + e.getMessage());
+      throw new IllegalStateException("Failed to load config " + config.getClass().getSimpleName(), e);
+    }
   }
 
   public void setupStorage() throws SQLException {

@@ -26,7 +26,7 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerBungee:7.10.0")
+    compileOnly("me.confuser.banmanager:BanManagerBungee:7.11.0-SNAPSHOT")
 
     compileOnly("net.md-5:bungeecord-api:1.21-R0.4")
     "shadeOnly"("org.bstats:bstats-bungeecord:2.2.1")
@@ -38,7 +38,7 @@ tasks.named<Copy>("processResources") {
     inputs.property("internalVersion", internalVersion)
 
     filesMatching("plugin.yml") {
-        expand("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.bungee.BungeePlugin")
+        expand(mapOf("internalVersion" to internalVersion, "mainPath" to "me.confuser.banmanager.webenhancer.bungee.BungeePlugin"))
     }
 }
 
