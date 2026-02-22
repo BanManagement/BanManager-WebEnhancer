@@ -6,7 +6,7 @@ import {
   opPlayer,
   sleep,
   getReportLogsWithMessages,
-  getLatestReport,
+  getLatestReportByReason,
   clearReportLogs,
   deleteReportsForPlayer,
   closeDatabase,
@@ -49,6 +49,16 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     return lastLogs
   }
 
+  const waitForReportByReason = async (reason: string) => {
+    for (let i = 0; i < 20; i++) {
+      const report = await getLatestReportByReason(reason)
+      if (report != null) return report
+      await sleep(500)
+    }
+
+    return null
+  }
+
   beforeAll(async () => {
     reporterBot = await createBot('FilterReporter')
     await sleep(2000)
@@ -75,6 +85,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
   test('normal messages appear in report logs', async () => {
     const uniqueId = Date.now()
     const normalMessage = `NormalTestMessage_${uniqueId}`
+    const reportReason = `Testing log capture ${uniqueId}`
 
     // Generate a normal (non-filtered) log message
     await sendCommand(`say ${normalMessage}`)
@@ -82,10 +93,9 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
 
     // Create a report to trigger log persistence
     reporterBot.clearSystemMessages()
-    await reporterBot.sendChat('/report FilterTarget Testing log capture')
-    await sleep(3000)
+    await reporterBot.sendChat(`/report FilterTarget ${reportReason}`)
 
-    const report = await getLatestReport()
+    const report = await waitForReportByReason(reportReason)
     expect(report).not.toBeNull()
 
     if (report != null) {
@@ -102,6 +112,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     const uniqueId = Date.now()
     const bmMessage = `[BanManager] FilteredMessage_${uniqueId}`
     const normalMessage = `NormalMarker_${uniqueId}`
+    const reportReason = `Testing BanManager filter ${uniqueId}`
 
     // Generate both a filtered and a normal message
     await sendCommand(`say ${bmMessage}`)
@@ -110,10 +121,9 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
 
     // Create a report to trigger log persistence
     reporterBot.clearSystemMessages()
-    await reporterBot.sendChat('/report FilterTarget Testing BanManager filter')
-    await sleep(3000)
+    await reporterBot.sendChat(`/report FilterTarget ${reportReason}`)
 
-    const report = await getLatestReport()
+    const report = await waitForReportByReason(reportReason)
     expect(report).not.toBeNull()
 
     if (report != null) {
@@ -136,16 +146,16 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     const uniqueId = Date.now()
     const metricsMessage = `Metrics data test_${uniqueId}`
     const normalMessage = `NormalMarkerMet_${uniqueId}`
+    const reportReason = `Testing Metrics filter ${uniqueId}`
 
     await sendCommand(`say ${metricsMessage}`)
     await sendCommand(`say ${normalMessage}`)
     await sleep(500)
 
     reporterBot.clearSystemMessages()
-    await reporterBot.sendChat('/report FilterTarget Testing Metrics filter')
-    await sleep(3000)
+    await reporterBot.sendChat(`/report FilterTarget ${reportReason}`)
 
-    const report = await getLatestReport()
+    const report = await waitForReportByReason(reportReason)
     expect(report).not.toBeNull()
 
     if (report != null) {
@@ -167,16 +177,16 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     const uniqueId = Date.now()
     const plugmanMessage = `[PlugMan] Action test_${uniqueId}`
     const normalMessage = `NormalMarkerPlugMan_${uniqueId}`
+    const reportReason = `Testing PlugMan filter ${uniqueId}`
 
     await sendCommand(`say ${plugmanMessage}`)
     await sendCommand(`say ${normalMessage}`)
     await sleep(500)
 
     reporterBot.clearSystemMessages()
-    await reporterBot.sendChat('/report FilterTarget Testing PlugMan filter')
-    await sleep(3000)
+    await reporterBot.sendChat(`/report FilterTarget ${reportReason}`)
 
-    const report = await getLatestReport()
+    const report = await waitForReportByReason(reportReason)
     expect(report).not.toBeNull()
 
     if (report != null) {
@@ -198,16 +208,16 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
     const uniqueId = Date.now()
     const reportMessage = 'issued server command: /report'
     const normalMessage = `NormalMarkerReport_${uniqueId}`
+    const reportReason = `Testing report cmd filter ${uniqueId}`
 
     await sendCommand(`say ${reportMessage}`)
     await sendCommand(`say ${normalMessage}`)
     await sleep(500)
 
     reporterBot.clearSystemMessages()
-    await reporterBot.sendChat('/report FilterTarget Testing report cmd filter')
-    await sleep(3000)
+    await reporterBot.sendChat(`/report FilterTarget ${reportReason}`)
 
-    const report = await getLatestReport()
+    const report = await waitForReportByReason(reportReason)
     expect(report).not.toBeNull()
 
     if (report != null) {
