@@ -260,7 +260,7 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
   test('TableUtils messages are filtered from report logs', async () => {
     const uniqueId = Date.now()
     const tableUtilsMessage = `TableUtils creating table_${uniqueId}`
-    const normalMessage = `NormalMarkerTableUtils_${uniqueId}`
+    const normalMessage = `NormalMarkerTblUtils_${uniqueId}`
     const logs = await captureLogsForReason(
       'Testing TableUtils filter',
       normalMessage,
