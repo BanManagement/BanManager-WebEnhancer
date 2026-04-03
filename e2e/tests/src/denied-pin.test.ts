@@ -13,7 +13,7 @@ describe('Denied Pin Placeholder', () => {
     let lastError: Error | null = null
 
     // Ban/tempban enforcement can be async across worker threads; retry denied connect checks.
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    for (let attempt = 1; attempt <= 5; attempt++) {
       try {
         bannedBot = await createBot(BANNED_USERNAME)
         await bannedBot.disconnect()
@@ -27,7 +27,7 @@ describe('Denied Pin Placeholder', () => {
         lastError = error instanceof Error ? error : new Error(String(error))
       }
 
-      await sleep(1000)
+      await sleep(2000)
     }
 
     throw lastError ?? new Error('Expected denied connection but did not receive a denial kick')
@@ -64,7 +64,7 @@ describe('Denied Pin Placeholder', () => {
   test('[pin] placeholder in tempban message is replaced with actual pin', async () => {
     const tempbanResponse = await sendCommand(`bmtempban ${BANNED_USERNAME} 1h Testing tempban pin placeholder`)
     console.log(`Tempban response: ${tempbanResponse}`)
-    await sleep(2000)
+    await sleep(3000)
 
     const errorMessage = await expectDeniedConnection()
     console.log(`Player was denied (tempban) as expected: ${errorMessage}`)
@@ -89,11 +89,12 @@ describe('Online Kick Pin Placeholder', () => {
   let bot: TestBot | null = null
 
   afterEach(async () => {
+    await bot?.disconnect()
+    bot = null
     try {
       await sendCommand(`bmunban ${KICK_USERNAME}`)
     } catch (e) {}
-    await bot?.disconnect()
-    bot = null
+    await sleep(2000)
   })
 
   test('[pin] placeholder in kick message is replaced when banning an online player', async () => {

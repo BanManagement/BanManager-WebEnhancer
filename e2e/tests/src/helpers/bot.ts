@@ -6,7 +6,40 @@ const SERVER_PORT = parseInt(process.env.SERVER_PORT ?? '25565', 10)
 const MC_VERSION = process.env.MC_VERSION ?? undefined
 
 /**
- * Extract text from a kick reason (string on Bukkit, ChatMessage object on Fabric)
+ * Extract text from an NBT compound chat component (Paper 1.20.5+ sends kick
+ * reasons as PrismarineNBT compounds instead of JSON chat components).
+ */
+function extractNbtText (nbt: Record<string, unknown>): string {
+  const value = nbt.value as Record<string, unknown>
+  let result = ''
+
+  const textField = value.text as Record<string, unknown> | undefined
+  if (textField?.type === 'string' && typeof textField.value === 'string') {
+    result += textField.value
+  }
+
+  const extra = value.extra as Record<string, unknown> | undefined
+  if (extra?.type === 'list') {
+    const listVal = extra.value as Record<string, unknown>
+    const items = listVal?.value
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (typeof item === 'object' && item != null) {
+          const t = (item as Record<string, unknown>).text as Record<string, unknown> | undefined
+          if (t?.type === 'string' && typeof t.value === 'string') {
+            result += t.value
+          }
+        }
+      }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Extract text from a kick reason (string on Bukkit, ChatMessage object on
+ * Fabric, or NBT compound on newer Paper).
  */
 function extractKickReason (reason: unknown): string {
   if (typeof reason === 'string') {
@@ -14,6 +47,11 @@ function extractKickReason (reason: unknown): string {
   }
   if (reason != null && typeof reason === 'object') {
     const reasonObj = reason as Record<string, unknown>
+
+    if (reasonObj.type === 'compound' && reasonObj.value != null) {
+      return extractNbtText(reasonObj)
+    }
+
     if (typeof reasonObj.toString === 'function') {
       const result = reasonObj.toString()
       if (result !== '[object Object]') {
@@ -315,12 +353,17 @@ export class TestBot {
       })
 
       bot.once('end', (reason) => {
-        if (settled) return
-        settled = true
-        clearTimeout(timeout)
-        bot.removeAllListeners('kicked')
-        this.bot = null
-        reject(new Error(`Bot disconnected before kick: ${reason}`))
+        // Delay before rejecting — mineflayer can fire 'end' (socketClosed) before
+        // 'kicked' when the server closes the TCP connection immediately after
+        // sending the disconnect packet. Give 'kicked' a chance to arrive first.
+        setTimeout(() => {
+          if (settled) return
+          settled = true
+          clearTimeout(timeout)
+          bot.removeAllListeners('kicked')
+          this.bot = null
+          reject(new Error(`Bot disconnected before kick: ${reason}`))
+        }, 500)
       })
     })
   }
