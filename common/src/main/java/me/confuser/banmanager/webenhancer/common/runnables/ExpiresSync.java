@@ -1,8 +1,6 @@
 package me.confuser.banmanager.webenhancer.common.runnables;
 
 import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
-import me.confuser.banmanager.common.BanManagerPlugin;
-import me.confuser.banmanager.common.runnables.BmRunnable;
 import me.confuser.banmanager.common.util.DateUtils;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
 import me.confuser.banmanager.webenhancer.common.data.PlayerPinData;
@@ -10,12 +8,10 @@ import me.confuser.banmanager.webenhancer.common.storage.PlayerPinStorage;
 
 import java.sql.SQLException;
 
-public class ExpiresSync extends BmRunnable {
+public class ExpiresSync implements Runnable {
   private PlayerPinStorage pinStorage;
 
   public ExpiresSync(WebEnhancerPlugin plugin) {
-    super(BanManagerPlugin.getInstance(), "pinCheck");
-
     pinStorage = plugin.getPlayerPinStorage();
   }
 

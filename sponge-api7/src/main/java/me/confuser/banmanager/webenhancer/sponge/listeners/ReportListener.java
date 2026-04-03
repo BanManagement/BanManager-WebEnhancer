@@ -1,10 +1,12 @@
 package me.confuser.banmanager.webenhancer.sponge.listeners;
 
 import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
+import me.confuser.banmanager.sponge.api.events.PlayerBannedEvent;
 import me.confuser.banmanager.sponge.api.events.PlayerReportDeletedEvent;
 import me.confuser.banmanager.sponge.api.events.PlayerReportedEvent;
 import me.confuser.banmanager.sponge.api.events.PlayerDeniedEvent;
 import me.confuser.banmanager.sponge.api.events.PluginReloadedEvent;
+import me.confuser.banmanager.common.util.Message;
 import me.confuser.banmanager.common.data.PlayerReportData;
 import me.confuser.banmanager.webenhancer.sponge.SpongePlugin;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
@@ -77,6 +79,17 @@ public class ReportListener {
   @Listener(order = Order.BEFORE_POST)
   public void onDeny(final PlayerDeniedEvent event) {
     listener.handlePin(event.getPlayer(), event.getMessage());
+  }
+
+  @Listener(order = Order.POST)
+  public void onBanned(PlayerBannedEvent event) {
+    try {
+      Message kickMessage = event.getKickMessage();
+      if (kickMessage != null) {
+        listener.handlePin(event.getBan().getPlayer(), kickMessage);
+      }
+    } catch (NoSuchMethodError ignored) {
+    }
   }
 
   @Listener

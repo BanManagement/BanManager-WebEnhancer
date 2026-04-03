@@ -1,7 +1,9 @@
 package me.confuser.banmanager.webenhancer.bungee.listeners;
 
+import me.confuser.banmanager.bungee.api.events.PlayerBannedEvent;
 import me.confuser.banmanager.bungee.api.events.PlayerDeniedEvent;
 import me.confuser.banmanager.bungee.api.events.PluginReloadedEvent;
+import me.confuser.banmanager.common.util.Message;
 import me.confuser.banmanager.webenhancer.bungee.BungeePlugin;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
@@ -19,6 +21,17 @@ public class BanListener implements Listener {
   @EventHandler
   public void onDeny(PlayerDeniedEvent event) {
     listener.handlePin(event.getPlayer(), event.getMessage());
+  }
+
+  @EventHandler
+  public void onBanned(PlayerBannedEvent event) {
+    try {
+      Message kickMessage = event.getKickMessage();
+      if (kickMessage != null) {
+        listener.handlePin(event.getBan().getPlayer(), kickMessage);
+      }
+    } catch (NoSuchMethodError ignored) {
+    }
   }
 
   @EventHandler

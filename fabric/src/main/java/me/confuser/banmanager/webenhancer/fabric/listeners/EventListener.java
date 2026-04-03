@@ -1,5 +1,6 @@
 package me.confuser.banmanager.webenhancer.fabric.listeners;
 
+import me.confuser.banmanager.common.data.PlayerBanData;
 import me.confuser.banmanager.common.data.PlayerData;
 import me.confuser.banmanager.common.util.Message;
 import me.confuser.banmanager.fabric.BanManagerEvents;
@@ -15,13 +16,19 @@ public class EventListener {
         this.plugin = plugin;
         this.deniedListener = new CommonPlayerDeniedListener(plugin);
 
-        // Wire BanManager Fabric events
         BanManagerEvents.PLAYER_DENIED_EVENT.register(this::onPlayerDenied);
+        BanManagerEvents.PLAYER_BANNED_EVENT.register(this::onPlayerBanned);
         BanManagerEvents.PLUGIN_RELOADED_EVENT.register(this::onReload);
     }
 
     private void onPlayerDenied(PlayerData player, Message message) {
         deniedListener.handlePin(player, message);
+    }
+
+    private void onPlayerBanned(PlayerBanData banData, boolean silent, Message kickMessage) {
+        if (kickMessage != null) {
+            deniedListener.handlePin(banData.getPlayer(), kickMessage);
+        }
     }
 
     private void onReload(PlayerData actor) {

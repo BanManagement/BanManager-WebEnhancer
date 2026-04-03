@@ -288,6 +288,43 @@ export class TestBot {
     }
   }
 
+  async waitForKick (timeoutMs: number = 30000): Promise<string> {
+    if (this.bot == null) {
+      throw new Error('Bot not connected')
+    }
+
+    const bot = this.bot
+    bot.removeAllListeners('kicked')
+
+    return await new Promise((resolve, reject) => {
+      let settled = false
+      const timeout = setTimeout(() => {
+        if (!settled) {
+          settled = true
+          reject(new Error('Timeout waiting for kick'))
+        }
+      }, timeoutMs)
+
+      bot.once('kicked', (reason) => {
+        if (settled) return
+        settled = true
+        clearTimeout(timeout)
+        bot.removeAllListeners('end')
+        this.bot = null
+        resolve(extractKickReason(reason))
+      })
+
+      bot.once('end', (reason) => {
+        if (settled) return
+        settled = true
+        clearTimeout(timeout)
+        bot.removeAllListeners('kicked')
+        this.bot = null
+        reject(new Error(`Bot disconnected before kick: ${reason}`))
+      })
+    })
+  }
+
   private async sleep (ms: number): Promise<void> {
     return await new Promise((resolve) => setTimeout(resolve, ms))
   }

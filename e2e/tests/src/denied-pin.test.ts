@@ -1,5 +1,9 @@
 import { TestBot, createBot, sendCommand, disconnectRcon, sleep } from './helpers'
 
+afterAll(async () => {
+  await disconnectRcon()
+})
+
 describe('Denied Pin Placeholder', () => {
   let bannedBot: TestBot | null = null
   const BANNED_USERNAME = 'DeniedPinPlayer'
@@ -35,10 +39,6 @@ describe('Denied Pin Placeholder', () => {
     } catch (e) {}
     await bannedBot?.disconnect()
     bannedBot = null
-  })
-
-  afterAll(async () => {
-    await disconnectRcon()
   })
 
   test('[pin] placeholder in ban message is replaced with actual pin', async () => {
@@ -78,6 +78,68 @@ describe('Denied Pin Placeholder', () => {
     if (pinMatch != null) {
       const pin = pinMatch[1]
       console.log(`Extracted pin from tempban message: ${pin}`)
+      expect(pin).toMatch(/^\d{6}$/)
+    }
+  }, TEST_TIMEOUT_MS)
+})
+
+describe('Online Kick Pin Placeholder', () => {
+  const KICK_USERNAME = 'OnlineKickPin'
+  const TEST_TIMEOUT_MS = 60000
+  let bot: TestBot | null = null
+
+  afterEach(async () => {
+    try {
+      await sendCommand(`bmunban ${KICK_USERNAME}`)
+    } catch (e) {}
+    await bot?.disconnect()
+    bot = null
+  })
+
+  test('[pin] placeholder in kick message is replaced when banning an online player', async () => {
+    bot = await createBot(KICK_USERNAME)
+    const kickPromise = bot.waitForKick()
+
+    await sleep(1000)
+    const banResponse = await sendCommand(`bmban ${KICK_USERNAME} Testing online kick pin`)
+    console.log(`Ban response: ${banResponse}`)
+
+    const kickReason = await kickPromise
+    console.log(`Online player kicked with reason: ${kickReason}`)
+    bot = null
+
+    expect(kickReason).not.toContain('[pin]')
+
+    const pinMatch = kickReason.match(/pin is (\d{6})/)
+    expect(pinMatch).not.toBeNull()
+
+    if (pinMatch != null) {
+      const pin = pinMatch[1]
+      console.log(`Extracted pin from online kick message: ${pin}`)
+      expect(pin).toMatch(/^\d{6}$/)
+    }
+  }, TEST_TIMEOUT_MS)
+
+  test('[pin] placeholder in kick message is replaced when tempbanning an online player', async () => {
+    bot = await createBot(KICK_USERNAME)
+    const kickPromise = bot.waitForKick()
+
+    await sleep(1000)
+    const tempbanResponse = await sendCommand(`bmtempban ${KICK_USERNAME} 1h Testing online tempban kick pin`)
+    console.log(`Tempban response: ${tempbanResponse}`)
+
+    const kickReason = await kickPromise
+    console.log(`Online player kicked (tempban) with reason: ${kickReason}`)
+    bot = null
+
+    expect(kickReason).not.toContain('[pin]')
+
+    const pinMatch = kickReason.match(/pin is (\d{6})/)
+    expect(pinMatch).not.toBeNull()
+
+    if (pinMatch != null) {
+      const pin = pinMatch[1]
+      console.log(`Extracted pin from online tempban kick message: ${pin}`)
       expect(pin).toMatch(/^\d{6}$/)
     }
   }, TEST_TIMEOUT_MS)
