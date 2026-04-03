@@ -231,4 +231,54 @@ describeOrSkip('Log Filtering (ignoreContains)', () => {
       console.log('Report command output correctly filtered')
     }
   }, 60000)
+
+  test('HikariDataSource messages are filtered from report logs', async () => {
+    const uniqueId = Date.now()
+    const hikariMessage = `HikariDataSource pool starting_${uniqueId}`
+    const normalMessage = `NormalMarkerHikari_${uniqueId}`
+    const logs = await captureLogsForReason(
+      'Testing HikariDataSource filter',
+      normalMessage,
+      async () => {
+        await sendCommand(`say ${hikariMessage}`)
+        await sendCommand(`say ${normalMessage}`)
+      }
+    )
+
+    expect(logs).not.toBeNull()
+    if (logs != null) {
+      const hikariFound = logs.some(log => log.message.includes(hikariMessage))
+      expect(hikariFound).toBe(false)
+
+      const normalFound = logs.some(log => log.message.includes(normalMessage))
+      expect(normalFound).toBe(true)
+
+      console.log('HikariDataSource messages correctly filtered')
+    }
+  }, 60000)
+
+  test('TableUtils messages are filtered from report logs', async () => {
+    const uniqueId = Date.now()
+    const tableUtilsMessage = `TableUtils creating table_${uniqueId}`
+    const normalMessage = `NormalMarkerTableUtils_${uniqueId}`
+    const logs = await captureLogsForReason(
+      'Testing TableUtils filter',
+      normalMessage,
+      async () => {
+        await sendCommand(`say ${tableUtilsMessage}`)
+        await sendCommand(`say ${normalMessage}`)
+      }
+    )
+
+    expect(logs).not.toBeNull()
+    if (logs != null) {
+      const tableUtilsFound = logs.some(log => log.message.includes(tableUtilsMessage))
+      expect(tableUtilsFound).toBe(false)
+
+      const normalFound = logs.some(log => log.message.includes(normalMessage))
+      expect(normalFound).toBe(true)
+
+      console.log('TableUtils messages correctly filtered')
+    }
+  }, 60000)
 })
