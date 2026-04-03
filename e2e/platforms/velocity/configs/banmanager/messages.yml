@@ -143,7 +143,7 @@ messages:
     player:
       disallowed: '&6You have been banned from this server for &4[reason]&6. Your
         appeal pin is [pin]'
-      kick: '&6You have been banned permanently for &4[reason]'
+      kick: '&6You have been banned permanently for &4[reason]&6. Your appeal pin is [pin]'
       dateTimeFormat: yyyy-MM-dd HH:mm:ss
     notify: '&6[player] has been permanently banned by [actor] for &4[reason]'
     error:
@@ -155,7 +155,7 @@ messages:
     player:
       disallowed: '&6You have been temporarily banned from this server for &4[reason]
         \n&6It expires in [expires]. Your appeal pin is [pin]'
-      kick: '&6You have been temporarily banned for &4[reason]'
+      kick: '&6You have been temporarily banned for &4[reason]&6. Your appeal pin is [pin]'
       dateTimeFormat: yyyy-MM-dd HH:mm:ss
     notify: '&6[player] has been temporarily banned for [expires] by [actor] for &4[reason]'
   tempbanall:
