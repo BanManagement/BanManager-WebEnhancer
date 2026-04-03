@@ -6,6 +6,7 @@ import me.confuser.banmanager.common.api.BmAPI;
 import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.Config;
 import me.confuser.banmanager.common.configs.PluginInfo;
+import me.confuser.banmanager.common.storage.migration.MigrationRunner;
 import me.confuser.banmanager.webenhancer.common.commands.PinCommand;
 import me.confuser.banmanager.webenhancer.common.configs.DefaultConfig;
 import me.confuser.banmanager.webenhancer.common.configs.MessagesConfig;
@@ -54,6 +55,15 @@ public class WebEnhancerPlugin {
 
   public final void enable() throws Exception {
     setupConfigs();
+
+    MigrationRunner webMigrations = new MigrationRunner(
+        BanManagerPlugin.getInstance(),
+        BmAPI.getLocalConnection(),
+        BanManagerPlugin.getInstance().getConfig().getLocalDb(),
+        "webenhancer",
+        "logs",
+        WebEnhancerPlugin.class.getClassLoader());
+    webMigrations.migrate();
 
     try {
       setupStorage();
