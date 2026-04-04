@@ -102,7 +102,7 @@ export class TestBot {
     return this._username
   }
 
-  async connect (): Promise<void> {
+  async connect (connectTimeoutMs: number = 30000): Promise<void> {
     return await new Promise((resolve, reject) => {
       console.log(`Connecting bot ${this._username} to ${SERVER_HOST}:${SERVER_PORT}`)
 
@@ -134,7 +134,7 @@ export class TestBot {
 
       const timeout = setTimeout(() => {
         cleanup(() => reject(new Error('Bot connection timeout')))
-      }, 30000)
+      }, connectTimeoutMs)
 
       this.bot.once('spawn', () => {
         clearTimeout(timeout)

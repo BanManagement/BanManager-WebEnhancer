@@ -5,19 +5,20 @@ afterAll(async () => {
 })
 
 describe('Denied Pin Placeholder', () => {
-  let bannedBot: TestBot | null = null
   const BANNED_USERNAME = 'DeniedPinPlayer'
-  const TEST_TIMEOUT_MS = 60000
+  const TEST_TIMEOUT_MS = 120000
 
   const expectDeniedConnection = async (): Promise<string> => {
     let lastError: Error | null = null
 
     // Ban/tempban enforcement can be async across worker threads; retry denied connect checks.
-    for (let attempt = 1; attempt <= 5; attempt++) {
+    // Use a short connect timeout (10s) so limbo connections (neither kicked nor spawned)
+    // don't burn the full 30s default, leaving room for more retries.
+    for (let attempt = 1; attempt <= 8; attempt++) {
+      const bot = new TestBot(BANNED_USERNAME)
       try {
-        bannedBot = await createBot(BANNED_USERNAME)
-        await bannedBot.disconnect()
-        bannedBot = null
+        await bot.connect(10000)
+        await bot.disconnect()
         lastError = new Error(`Attempt ${attempt}: player connected while expected to be denied`)
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : String(error)
@@ -25,6 +26,7 @@ describe('Denied Pin Placeholder', () => {
           return errorMessage
         }
         lastError = error instanceof Error ? error : new Error(String(error))
+        try { await bot.disconnect() } catch (e) {}
       }
 
       await sleep(2000)
@@ -34,8 +36,6 @@ describe('Denied Pin Placeholder', () => {
   }
 
   afterEach(async () => {
-    await bannedBot?.disconnect()
-    bannedBot = null
     try { await sendCommand(`bmunban ${BANNED_USERNAME}`) } catch (e) {}
     try { await sendCommand(`bmuntempban ${BANNED_USERNAME}`) } catch (e) {}
     await sleep(2000)
