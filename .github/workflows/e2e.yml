@@ -135,6 +135,15 @@ jobs:
           key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-loom-
 
+      - name: Publish BanManager to Maven Local
+        working-directory: BanManager
+        run: ./gradlew publishToMavenLocal --build-cache
+
+      - name: Clear stale BanManager dependency caches
+        run: |
+          find ~/.gradle/caches -path "*/me.confuser.banmanager*" -exec rm -rf {} + 2>/dev/null || true
+          find .gradle/loom-cache -path "*/BanManager*" -exec rm -rf {} + 2>/dev/null || true
+
       # Docker Buildx for better caching
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -171,7 +180,7 @@ jobs:
         run: ./gradlew ${{ matrix.build_task }} --build-cache
 
       - name: Run E2E tests
-        run: ./gradlew :BanManagerWebEnhancerE2E:${{ matrix.task }} --build-cache -PbanManagerPath=BanManager
+        run: ./gradlew :BanManagerWebEnhancerE2E:${{ matrix.task }} --build-cache --refresh-dependencies -PbanManagerPath=BanManager
         timeout-minutes: 15
         env:
           MC_VERSION: ${{ matrix.mc_version }}

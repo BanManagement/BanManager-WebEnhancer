@@ -1,10 +1,12 @@
 package me.confuser.banmanager.webenhancer.bukkit.listeners;
 
 import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
+import me.confuser.banmanager.bukkit.api.events.PlayerBannedEvent;
 import me.confuser.banmanager.bukkit.api.events.PlayerReportDeletedEvent;
 import me.confuser.banmanager.bukkit.api.events.PlayerReportedEvent;
 import me.confuser.banmanager.bukkit.api.events.PlayerDeniedEvent;
 import me.confuser.banmanager.bukkit.api.events.PluginReloadedEvent;
+import me.confuser.banmanager.common.util.Message;
 import me.confuser.banmanager.common.data.PlayerReportData;
 import me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
@@ -74,6 +76,17 @@ public class ReportListener implements Listener {
   @EventHandler
   public void onDeny(PlayerDeniedEvent event) {
     listener.handlePin(event.getPlayer(), event.getMessage());
+  }
+
+  @EventHandler(priority = EventPriority.MONITOR)
+  public void onBanned(PlayerBannedEvent event) {
+    try {
+      Message kickMessage = event.getKickMessage();
+      if (kickMessage != null) {
+        listener.handlePin(event.getBan().getPlayer(), kickMessage);
+      }
+    } catch (NoSuchMethodError ignored) {
+    }
   }
 
   @EventHandler

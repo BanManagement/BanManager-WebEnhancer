@@ -6,7 +6,40 @@ const SERVER_PORT = parseInt(process.env.SERVER_PORT ?? '25565', 10)
 const MC_VERSION = process.env.MC_VERSION ?? undefined
 
 /**
- * Extract text from a kick reason (string on Bukkit, ChatMessage object on Fabric)
+ * Extract text from an NBT compound chat component (Paper 1.20.5+ sends kick
+ * reasons as PrismarineNBT compounds instead of JSON chat components).
+ */
+function extractNbtText (nbt: Record<string, unknown>): string {
+  const value = nbt.value as Record<string, unknown>
+  let result = ''
+
+  const textField = value.text as Record<string, unknown> | undefined
+  if (textField?.type === 'string' && typeof textField.value === 'string') {
+    result += textField.value
+  }
+
+  const extra = value.extra as Record<string, unknown> | undefined
+  if (extra?.type === 'list') {
+    const listVal = extra.value as Record<string, unknown>
+    const items = listVal?.value
+    if (Array.isArray(items)) {
+      for (const item of items) {
+        if (typeof item === 'object' && item != null) {
+          const t = (item as Record<string, unknown>).text as Record<string, unknown> | undefined
+          if (t?.type === 'string' && typeof t.value === 'string') {
+            result += t.value
+          }
+        }
+      }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Extract text from a kick reason (string on Bukkit, ChatMessage object on
+ * Fabric, or NBT compound on newer Paper).
  */
 function extractKickReason (reason: unknown): string {
   if (typeof reason === 'string') {
@@ -14,6 +47,11 @@ function extractKickReason (reason: unknown): string {
   }
   if (reason != null && typeof reason === 'object') {
     const reasonObj = reason as Record<string, unknown>
+
+    if (reasonObj.type === 'compound' && reasonObj.value != null) {
+      return extractNbtText(reasonObj)
+    }
+
     if (typeof reasonObj.toString === 'function') {
       const result = reasonObj.toString()
       if (result !== '[object Object]') {
@@ -64,7 +102,7 @@ export class TestBot {
     return this._username
   }
 
-  async connect (): Promise<void> {
+  async connect (connectTimeoutMs: number = 30000): Promise<void> {
     return await new Promise((resolve, reject) => {
       console.log(`Connecting bot ${this._username} to ${SERVER_HOST}:${SERVER_PORT}`)
 
@@ -77,9 +115,26 @@ export class TestBot {
         version: MC_VERSION
       })
 
+      const cleanup = (callback: () => void): void => {
+        if (this.bot != null) {
+          const b = this.bot
+          this.bot = null
+
+          const fallback = setTimeout(() => callback(), 1500)
+
+          b.once('end', () => {
+            clearTimeout(fallback)
+            callback()
+          })
+          b.end()
+        } else {
+          callback()
+        }
+      }
+
       const timeout = setTimeout(() => {
-        reject(new Error('Bot connection timeout'))
-      }, 30000)
+        cleanup(() => reject(new Error('Bot connection timeout')))
+      }, connectTimeoutMs)
 
       this.bot.once('spawn', () => {
         clearTimeout(timeout)
@@ -89,14 +144,14 @@ export class TestBot {
 
       this.bot.once('error', (err) => {
         clearTimeout(timeout)
-        reject(err)
+        cleanup(() => reject(err))
       })
 
       this.bot.once('kicked', (reason) => {
         clearTimeout(timeout)
         const reasonText = extractKickReason(reason)
         console.log(`Bot ${this._username} was kicked: ${reasonText}`)
-        reject(new Error(`Bot ${this._username} was kicked: ${reasonText}`))
+        cleanup(() => reject(new Error(`Bot ${this._username} was kicked: ${reasonText}`)))
       })
 
       this.bot.on('chat', (username, message) => {
@@ -286,6 +341,62 @@ export class TestBot {
         throw new Error(`Unexpected chat from ${fromUsername}: "${msg.message}"`)
       }
     }
+  }
+
+  async waitForKick (timeoutMs: number = 30000): Promise<string> {
+    if (this.bot == null) {
+      throw new Error('Bot not connected')
+    }
+
+    const bot = this.bot
+    bot.removeAllListeners('kicked')
+
+    return await new Promise((resolve, reject) => {
+      let settled = false
+      const timeout = setTimeout(() => {
+        if (!settled) {
+          settled = true
+          reject(new Error('Timeout waiting for kick'))
+        }
+      }, timeoutMs)
+
+      bot.once('kicked', (reason) => {
+        if (settled) return
+        settled = true
+        clearTimeout(timeout)
+        const kickReason = extractKickReason(reason)
+
+        // Wait for the 'end' event so mineflayer's internal cleanup (physics
+        // timer clearInterval) runs before we resolve. Resolving immediately
+        // lets the test finish and Jest tear down while the physics tick is
+        // still running, causing a ReferenceError.
+        const endTimeout = setTimeout(() => {
+          this.bot = null
+          resolve(kickReason)
+        }, 1500)
+
+        bot.once('end', () => {
+          clearTimeout(endTimeout)
+          this.bot = null
+          resolve(kickReason)
+        })
+
+        bot.end()
+      })
+
+      bot.once('end', (reason) => {
+        // Delay before rejecting — mineflayer can fire 'end' (socketClosed) before
+        // 'kicked' when the server closes the TCP connection immediately after
+        // sending the disconnect packet. Give 'kicked' a chance to arrive first.
+        setTimeout(() => {
+          if (settled) return
+          settled = true
+          clearTimeout(timeout)
+          this.bot = null
+          reject(new Error(`Bot disconnected before kick: ${reason}`))
+        }, 500)
+      })
+    })
   }
 
   private async sleep (ms: number): Promise<void> {
