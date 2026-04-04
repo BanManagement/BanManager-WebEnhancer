@@ -132,8 +132,12 @@ jobs:
         with:
           path: |
             .gradle/loom-cache
-          key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
+          key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: ${{ runner.os }}-loom-
+
+      - name: Publish BanManager to Maven Local
+        working-directory: BanManager
+        run: ./gradlew publishToMavenLocal --build-cache
 
       # Docker Buildx for better caching
       - name: Set up Docker Buildx

@@ -115,7 +115,16 @@ export class TestBot {
         version: MC_VERSION
       })
 
+      const cleanup = (): void => {
+        if (this.bot != null) {
+          this.bot.removeAllListeners()
+          this.bot.end()
+          this.bot = null
+        }
+      }
+
       const timeout = setTimeout(() => {
+        cleanup()
         reject(new Error('Bot connection timeout'))
       }, 30000)
 
@@ -127,6 +136,7 @@ export class TestBot {
 
       this.bot.once('error', (err) => {
         clearTimeout(timeout)
+        cleanup()
         reject(err)
       })
 
@@ -134,6 +144,7 @@ export class TestBot {
         clearTimeout(timeout)
         const reasonText = extractKickReason(reason)
         console.log(`Bot ${this._username} was kicked: ${reasonText}`)
+        cleanup()
         reject(new Error(`Bot ${this._username} was kicked: ${reasonText}`))
       })
 
@@ -347,7 +358,8 @@ export class TestBot {
         if (settled) return
         settled = true
         clearTimeout(timeout)
-        bot.removeAllListeners('end')
+        bot.removeAllListeners()
+        bot.end()
         this.bot = null
         resolve(extractKickReason(reason))
       })
@@ -360,7 +372,7 @@ export class TestBot {
           if (settled) return
           settled = true
           clearTimeout(timeout)
-          bot.removeAllListeners('kicked')
+          bot.removeAllListeners()
           this.bot = null
           reject(new Error(`Bot disconnected before kick: ${reason}`))
         }, 500)
