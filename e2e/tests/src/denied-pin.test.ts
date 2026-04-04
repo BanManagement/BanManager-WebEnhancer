@@ -34,11 +34,11 @@ describe('Denied Pin Placeholder', () => {
   }
 
   afterEach(async () => {
-    try {
-      await sendCommand(`bmunban ${BANNED_USERNAME}`)
-    } catch (e) {}
     await bannedBot?.disconnect()
     bannedBot = null
+    try { await sendCommand(`bmunban ${BANNED_USERNAME}`) } catch (e) {}
+    try { await sendCommand(`bmuntempban ${BANNED_USERNAME}`) } catch (e) {}
+    await sleep(2000)
   })
 
   test('[pin] placeholder in ban message is replaced with actual pin', async () => {
@@ -64,7 +64,7 @@ describe('Denied Pin Placeholder', () => {
   test('[pin] placeholder in tempban message is replaced with actual pin', async () => {
     const tempbanResponse = await sendCommand(`bmtempban ${BANNED_USERNAME} 1h Testing tempban pin placeholder`)
     console.log(`Tempban response: ${tempbanResponse}`)
-    await sleep(3000)
+    await sleep(5000)
 
     const errorMessage = await expectDeniedConnection()
     console.log(`Player was denied (tempban) as expected: ${errorMessage}`)
@@ -91,9 +91,8 @@ describe('Online Kick Pin Placeholder', () => {
   afterEach(async () => {
     await bot?.disconnect()
     bot = null
-    try {
-      await sendCommand(`bmunban ${KICK_USERNAME}`)
-    } catch (e) {}
+    try { await sendCommand(`bmunban ${KICK_USERNAME}`) } catch (e) {}
+    try { await sendCommand(`bmuntempban ${KICK_USERNAME}`) } catch (e) {}
     await sleep(2000)
   })
 
