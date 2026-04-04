@@ -115,17 +115,25 @@ export class TestBot {
         version: MC_VERSION
       })
 
-      const cleanup = (): void => {
+      const cleanup = (callback: () => void): void => {
         if (this.bot != null) {
-          this.bot.removeAllListeners()
-          this.bot.end()
+          const b = this.bot
           this.bot = null
+
+          const fallback = setTimeout(() => callback(), 1500)
+
+          b.once('end', () => {
+            clearTimeout(fallback)
+            callback()
+          })
+          b.end()
+        } else {
+          callback()
         }
       }
 
       const timeout = setTimeout(() => {
-        cleanup()
-        reject(new Error('Bot connection timeout'))
+        cleanup(() => reject(new Error('Bot connection timeout')))
       }, 30000)
 
       this.bot.once('spawn', () => {
@@ -136,16 +144,14 @@ export class TestBot {
 
       this.bot.once('error', (err) => {
         clearTimeout(timeout)
-        cleanup()
-        reject(err)
+        cleanup(() => reject(err))
       })
 
       this.bot.once('kicked', (reason) => {
         clearTimeout(timeout)
         const reasonText = extractKickReason(reason)
         console.log(`Bot ${this._username} was kicked: ${reasonText}`)
-        cleanup()
-        reject(new Error(`Bot ${this._username} was kicked: ${reasonText}`))
+        cleanup(() => reject(new Error(`Bot ${this._username} was kicked: ${reasonText}`)))
       })
 
       this.bot.on('chat', (username, message) => {
@@ -358,10 +364,24 @@ export class TestBot {
         if (settled) return
         settled = true
         clearTimeout(timeout)
-        bot.removeAllListeners()
+        const kickReason = extractKickReason(reason)
+
+        // Wait for the 'end' event so mineflayer's internal cleanup (physics
+        // timer clearInterval) runs before we resolve. Resolving immediately
+        // lets the test finish and Jest tear down while the physics tick is
+        // still running, causing a ReferenceError.
+        const endTimeout = setTimeout(() => {
+          this.bot = null
+          resolve(kickReason)
+        }, 1500)
+
+        bot.once('end', () => {
+          clearTimeout(endTimeout)
+          this.bot = null
+          resolve(kickReason)
+        })
+
         bot.end()
-        this.bot = null
-        resolve(extractKickReason(reason))
       })
 
       bot.once('end', (reason) => {
@@ -372,7 +392,6 @@ export class TestBot {
           if (settled) return
           settled = true
           clearTimeout(timeout)
-          bot.removeAllListeners()
           this.bot = null
           reject(new Error(`Bot disconnected before kick: ${reason}`))
         }, 500)
