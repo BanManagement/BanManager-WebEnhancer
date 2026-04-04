@@ -71,4 +71,4 @@ jobs:
         run: ./gradlew build --build-cache --refresh-dependencies --info
 
       - name: Build all Fabric versions
-        run: ./gradlew :fabric:1.20.1:remapJar :fabric:1.21.1:remapJar :fabric:1.21.4:remapJar :fabric:1.21.11:remapJar --build-cache --refresh-dependencies
+        run: ./gradlew :fabric:1.20.1:remapJar :fabric:1.21.1:remapJar :fabric:1.21.4:remapJar :fabric:1.21.11:remapJar --build-cache
