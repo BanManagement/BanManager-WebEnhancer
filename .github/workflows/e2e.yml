@@ -132,7 +132,7 @@ jobs:
         with:
           path: |
             .gradle/loom-cache
-          key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
           restore-keys: ${{ runner.os }}-loom-
 
       # Docker Buildx for better caching

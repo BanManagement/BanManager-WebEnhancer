@@ -47,13 +47,13 @@ jobs:
         with:
           path: |
             .gradle/loom-cache
-          key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-loom-${{ hashFiles('**/libs.versions.*', '**/*.gradle*', '**/gradle-wrapper.properties') }}-${{ github.run_id }}
           restore-keys: ${{ runner.os }}-loom-
 
       - name: Execute Gradle build
         env:
           STORAGE_TYPE: ${{ matrix.storageType }}
-        run: ./gradlew build --build-cache --info
+        run: ./gradlew build --build-cache --refresh-dependencies --info
 
       - name: Build all Fabric versions
         run: ./gradlew :fabric:1.20.1:remapJar :fabric:1.21.1:remapJar :fabric:1.21.4:remapJar :fabric:1.21.11:remapJar --build-cache
