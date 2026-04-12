@@ -69,7 +69,7 @@ configurations {
 
 dependencies {
     compileOnly("org.spongepowered:spongeapi:7.2.0")
-    compileOnly("me.confuser.banmanager:BanManagerSponge7:7.11.0-SNAPSHOT")
+    compileOnly("me.confuser.banmanager:BanManagerSponge7:8.0.0-SNAPSHOT")
     compileOnly("org.apache.logging.log4j:log4j-core:2.17.0")
 
     api(project(":BanManagerWebEnhancerCommon")) {
@@ -79,7 +79,7 @@ dependencies {
     "shadeOnly"("org.bstats:bstats-sponge:2.2.1")
 }
 
-val javaTarget = 8 // Sponge targets a minimum of Java 8
+val javaTarget = 17
 java {
     sourceCompatibility = JavaVersion.toVersion(javaTarget)
     targetCompatibility = JavaVersion.toVersion(javaTarget)

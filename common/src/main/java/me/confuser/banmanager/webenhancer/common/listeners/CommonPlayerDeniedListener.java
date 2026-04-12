@@ -13,10 +13,10 @@ public class CommonPlayerDeniedListener {
   }
 
   public void handlePin(PlayerData player, Message message) {
-    if (!message.toString().contains("[pin]")) return;
+    String template = message.getRawTemplate();
+    if (template == null || !template.contains("<pin>")) return;
 
     PlayerPinData pin = plugin.getPlayerPinStorage().getValidPin(player);
-
 
     if (pin != null) {
       message.set("pin", String.valueOf(pin.getGeneratedPin()));

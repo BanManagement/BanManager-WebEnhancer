@@ -39,13 +39,11 @@ public class CommonPlayerDeniedListenerTest {
 
     @Test
     public void handlePin_replacesPlaceholderWithPin() {
-        // Setup
         when(playerPinStorage.getValidPin(player)).thenReturn(pinData);
         when(pinData.getGeneratedPin()).thenReturn(123456);
 
-        // Create a mocked message with [pin] placeholder
         Message message = mock(Message.class);
-        when(message.toString()).thenReturn("Your login pin is: [pin]");
+        when(message.getRawTemplate()).thenReturn("Your login pin is: <pin>");
 
         listener.handlePin(player, message);
 
@@ -54,9 +52,8 @@ public class CommonPlayerDeniedListenerTest {
 
     @Test
     public void handlePin_ignoresMessagesWithoutPlaceholder() {
-        // Create a mocked message without [pin] placeholder
         Message message = mock(Message.class);
-        when(message.toString()).thenReturn("You have been banned!");
+        when(message.getRawTemplate()).thenReturn("You have been banned!");
 
         listener.handlePin(player, message);
 
@@ -66,15 +63,24 @@ public class CommonPlayerDeniedListenerTest {
 
     @Test
     public void handlePin_handlesNullPinGracefully() {
-        // Setup - getValidPin returns null
         when(playerPinStorage.getValidPin(player)).thenReturn(null);
 
-        // Create a mocked message with [pin] placeholder
         Message message = mock(Message.class);
-        when(message.toString()).thenReturn("Your login pin is: [pin]");
+        when(message.getRawTemplate()).thenReturn("Your login pin is: <pin>");
 
         listener.handlePin(player, message);
 
+        verify(message, never()).set(anyString(), anyString());
+    }
+
+    @Test
+    public void handlePin_handlesNullTemplateGracefully() {
+        Message message = mock(Message.class);
+        when(message.getRawTemplate()).thenReturn(null);
+
+        listener.handlePin(player, message);
+
+        verify(playerPinStorage, never()).getValidPin(any());
         verify(message, never()).set(anyString(), anyString());
     }
 }
