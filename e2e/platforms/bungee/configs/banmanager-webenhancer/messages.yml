@@ -1,4 +1,5 @@
 messages:
   pin:
-    notify: '&6Your pin expires in [expires]'
-    pin: '[pin]'
+    notify: '<gold>Your pin expires in <expires>'
+    pin: '<pin>'
+    rateLimited: '<red>Please wait <seconds> seconds before generating a new pin'
