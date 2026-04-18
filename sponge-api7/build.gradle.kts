@@ -69,7 +69,7 @@ configurations {
 
 dependencies {
     compileOnly("org.spongepowered:spongeapi:7.2.0")
-    compileOnly("me.confuser.banmanager:BanManagerSponge7:7.11.0-SNAPSHOT")
+    compileOnly("me.confuser.banmanager:BanManagerSponge7:7.11.0")
     compileOnly("org.apache.logging.log4j:log4j-core:2.17.0")
 
     api(project(":BanManagerWebEnhancerCommon")) {

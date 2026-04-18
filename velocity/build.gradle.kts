@@ -36,7 +36,7 @@ dependencies {
     api(project(":BanManagerWebEnhancerCommon")) {
         isTransitive = true
     }
-    compileOnly("me.confuser.banmanager:BanManagerVelocity:7.11.0-SNAPSHOT")
+    compileOnly("me.confuser.banmanager:BanManagerVelocity:7.11.0")
 
     compileOnly("com.velocitypowered:velocity-api:3.1.0")
     annotationProcessor("com.velocitypowered:velocity-api:3.1.0")
