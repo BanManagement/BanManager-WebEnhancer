@@ -42,7 +42,7 @@ public class PinCommand extends CommonCommand {
       try {
         player = getPlugin().getPlayerStorage().queryForId(sender.getData().getId());
       } catch (SQLException e) {
-        sender.sendMessage(Message.get("sender.error.exception").toString());
+        Message.get("sender.error.exception").sendTo(sender);
         e.printStackTrace();
         return;
       }
@@ -50,7 +50,7 @@ public class PinCommand extends CommonCommand {
       PlayerPinData pin = plugin.getPlayerPinStorage().getValidPin(player);
 
       if (pin == null) {
-        sender.sendMessage(Message.get("sender.error.exception").toString());
+        Message.get("sender.error.exception").sendTo(sender);
         return;
       }
 
