@@ -25,7 +25,7 @@ fun Project.applyPlatformAndCoreConfiguration() {
 
     ext["internalVersion"] = "$version"
 
-    // Java 8 turns on doclint which we fail
+    // Suppress doclint to keep javadoc builds green; tags below document supported custom tags.
     tasks.withType<Javadoc>().configureEach {
         (options as StandardJavadocDocletOptions).apply {
             addStringOption("Xdoclint:none", "-quiet")

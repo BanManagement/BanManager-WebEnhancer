@@ -11,24 +11,26 @@ dependencies {
     api("me.confuser.banmanager:BanManagerCommon:8.0.0-SNAPSHOT")
     api("me.confuser.banmanager.BanManagerLibs:BanManagerLibs:8.0.0-SNAPSHOT")
 
-    // Test dependencies
-    testImplementation("junit:junit:4.13")
-    testImplementation("org.mockito:mockito-core:4.0.0")
-    testImplementation("org.powermock:powermock-module-junit4:2.0.2")
-    testImplementation("org.powermock:powermock-api-mockito2:2.0.2")
-    testImplementation("ch.vorburger.mariaDB4j:mariaDB4j:2.6.0")
-    testImplementation("org.awaitility:awaitility:4.0.1")
+    testImplementation(platform("org.junit:junit-bom:5.11.4"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("org.mockito:mockito-junit-jupiter:5.14.2")
+    testImplementation("ch.vorburger.mariaDB4j:mariaDB4j:3.3.1")
+    testImplementation("org.awaitility:awaitility:4.3.0")
 }
 
 tasks.withType<Test>().configureEach {
-    useJUnit()
+    useJUnitPlatform()
     maxHeapSize = "512m"
-    forkEvery = 1  // Fork a new JVM for each test class to prevent memory accumulation
+    // Fork a new JVM per test class - tests share JDBC/native fixtures that otherwise
+    // accumulate state across runs and hang the suite. See BanManager/common build.
+    forkEvery = 1
     finalizedBy(tasks.jacocoTestReport)
 }
 
 jacoco {
-    toolVersion = "0.8.11"
+    toolVersion = "0.8.12"
 }
 
 tasks.jacocoTestReport {

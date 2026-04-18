@@ -40,7 +40,7 @@ dependencies {
 
     compileOnly("com.velocitypowered:velocity-api:3.1.0")
     annotationProcessor("com.velocitypowered:velocity-api:3.1.0")
-    "shadeOnly"("org.bstats:bstats-velocity:3.0.0")
+    "shadeOnly"("org.bstats:bstats-velocity:3.2.1")
 }
 
 tasks.named<Copy>("processResources") {

@@ -5,16 +5,15 @@ import me.confuser.banmanager.common.util.Message;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
 import me.confuser.banmanager.webenhancer.common.data.PlayerPinData;
 import me.confuser.banmanager.webenhancer.common.storage.PlayerPinStorage;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class CommonPlayerDeniedListenerTest {
 
     @Mock
@@ -31,9 +30,9 @@ public class CommonPlayerDeniedListenerTest {
 
     private CommonPlayerDeniedListener listener;
 
-    @Before
+    @BeforeEach
     public void setUp() {
-        when(plugin.getPlayerPinStorage()).thenReturn(playerPinStorage);
+        lenient().when(plugin.getPlayerPinStorage()).thenReturn(playerPinStorage);
         listener = new CommonPlayerDeniedListener(plugin);
     }
 

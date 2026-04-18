@@ -1,9 +1,9 @@
 package me.confuser.banmanager.webenhancer.common.security;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for Argon2PasswordEncoder.
@@ -12,7 +12,7 @@ public class Argon2PasswordEncoderTest {
 
     private Argon2PasswordEncoder encoder;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         encoder = new Argon2PasswordEncoder();
     }
@@ -23,8 +23,8 @@ public class Argon2PasswordEncoderTest {
 
         String encoded = encoder.encode(password);
 
-        assertNotNull("Encoded password should not be null", encoded);
-        assertNotEquals("Encoded password should differ from original", password, encoded);
+        assertNotNull(encoded, "Encoded password should not be null");
+        assertNotEquals(password, encoded, "Encoded password should differ from original");
     }
 
     @Test
@@ -34,7 +34,7 @@ public class Argon2PasswordEncoderTest {
         String encoded = encoder.encode(password);
 
         // Argon2i format starts with $argon2i$
-        assertTrue("Hash should use Argon2i format", encoded.startsWith("$argon2i$"));
+        assertTrue(encoded.startsWith("$argon2i$"), "Hash should use Argon2i format");
     }
 
     @Test
@@ -44,7 +44,7 @@ public class Argon2PasswordEncoderTest {
         String encoded1 = encoder.encode(password);
         String encoded2 = encoder.encode(password);
 
-        assertNotEquals("Hashes should differ due to unique salts", encoded1, encoded2);
+        assertNotEquals(encoded1, encoded2, "Hashes should differ due to unique salts");
     }
 
     @Test
@@ -53,7 +53,7 @@ public class Argon2PasswordEncoderTest {
 
         String encoded = encoder.encode(password);
 
-        assertTrue("Hash string should be substantial", encoded.length() > 50);
+        assertTrue(encoded.length() > 50, "Hash string should be substantial");
     }
 
     @Test
@@ -62,8 +62,8 @@ public class Argon2PasswordEncoderTest {
 
         String encoded = encoder.encode(password);
 
-        assertNotNull("Should handle empty password", encoded);
-        assertTrue("Should still produce Argon2i format", encoded.startsWith("$argon2i$"));
+        assertNotNull(encoded, "Should handle empty password");
+        assertTrue(encoded.startsWith("$argon2i$"), "Should still produce Argon2i format");
     }
 
     @Test
@@ -75,8 +75,8 @@ public class Argon2PasswordEncoderTest {
 
         String encoded = encoder.encode(longPassword.toString());
 
-        assertNotNull("Should handle long password", encoded);
-        assertTrue("Should still produce Argon2i format", encoded.startsWith("$argon2i$"));
+        assertNotNull(encoded, "Should handle long password");
+        assertTrue(encoded.startsWith("$argon2i$"), "Should still produce Argon2i format");
     }
 
     @Test
@@ -85,8 +85,8 @@ public class Argon2PasswordEncoderTest {
 
         String encoded = encoder.encode(password);
 
-        assertNotNull("Should handle special characters", encoded);
-        assertTrue("Should still produce Argon2i format", encoded.startsWith("$argon2i$"));
+        assertNotNull(encoded, "Should handle special characters");
+        assertTrue(encoded.startsWith("$argon2i$"), "Should still produce Argon2i format");
     }
 
     @Test
@@ -96,14 +96,14 @@ public class Argon2PasswordEncoderTest {
 
         String encoded = encoder.encode(pin);
 
-        assertNotNull("Should handle numeric PIN", encoded);
-        assertTrue("Should produce Argon2i format", encoded.startsWith("$argon2i$"));
+        assertNotNull(encoded, "Should handle numeric PIN");
+        assertTrue(encoded.startsWith("$argon2i$"), "Should produce Argon2i format");
 
         // Verify format contains expected parameters
-        assertTrue("Should contain version", encoded.contains("v="));
-        assertTrue("Should contain memory parameter", encoded.contains("m="));
-        assertTrue("Should contain time parameter", encoded.contains("t="));
-        assertTrue("Should contain parallelism parameter", encoded.contains("p="));
+        assertTrue(encoded.contains("v="), "Should contain version");
+        assertTrue(encoded.contains("m="), "Should contain memory parameter");
+        assertTrue(encoded.contains("t="), "Should contain time parameter");
+        assertTrue(encoded.contains("p="), "Should contain parallelism parameter");
     }
 
     @Test
@@ -117,6 +117,6 @@ public class Argon2PasswordEncoderTest {
 
         String format2 = encoded2.substring(0, encoded2.indexOf("$", 9));
 
-        assertEquals("Both instances should produce same format", format1, format2);
+        assertEquals(format1, format2, "Both instances should produce same format");
     }
 }
