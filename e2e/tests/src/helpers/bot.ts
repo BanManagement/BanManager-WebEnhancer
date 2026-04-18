@@ -6,11 +6,16 @@ const SERVER_PORT = parseInt(process.env.SERVER_PORT ?? '25565', 10)
 const MC_VERSION = process.env.MC_VERSION ?? undefined
 
 /**
- * Extract text from an NBT compound chat component (Paper 1.20.5+ sends kick
- * reasons as PrismarineNBT compounds instead of JSON chat components).
+ * Recursively extract text from an NBT compound chat component (Paper 1.20.5+
+ * sends kick reasons as PrismarineNBT compounds instead of JSON chat
+ * components). Nested children inside `extra[*].extra` must be traversed so
+ * MiniMessage-rendered nested components (e.g. `<gold>A<dark_red>B<gold>C`)
+ * don't get truncated at the first nesting level.
  */
 function extractNbtText (nbt: Record<string, unknown>): string {
-  const value = nbt.value as Record<string, unknown>
+  const value = nbt.value as Record<string, unknown> | undefined
+  if (value == null) return ''
+
   let result = ''
 
   const textField = value.text as Record<string, unknown> | undefined
@@ -25,12 +30,32 @@ function extractNbtText (nbt: Record<string, unknown>): string {
     if (Array.isArray(items)) {
       for (const item of items) {
         if (typeof item === 'object' && item != null) {
-          const t = (item as Record<string, unknown>).text as Record<string, unknown> | undefined
-          if (t?.type === 'string' && typeof t.value === 'string') {
-            result += t.value
-          }
+          // Each list item is itself an NBT compound-like value; recurse so we
+          // pick up nested text/extra fields.
+          result += extractNbtText({ value: item })
         }
       }
+    }
+  }
+
+  return result
+}
+
+/**
+ * Recursively extract text from a JSON chat component, traversing nested
+ * `extra` arrays so nested MiniMessage output isn't truncated.
+ */
+function extractJsonText (component: unknown): string {
+  if (typeof component === 'string') return component
+  if (component == null || typeof component !== 'object') return ''
+
+  const obj = component as Record<string, unknown>
+  let result = ''
+
+  if (typeof obj.text === 'string') result += obj.text
+  if (Array.isArray(obj.extra)) {
+    for (const child of obj.extra) {
+      result += extractJsonText(child)
     }
   }
 
@@ -61,16 +86,8 @@ function extractKickReason (reason: unknown): string {
     if (typeof reasonObj.toMotd === 'function') {
       return reasonObj.toMotd() as string
     }
-    if ('text' in reasonObj && typeof reasonObj.text === 'string') {
-      return reasonObj.text
-    }
-    if ('extra' in reasonObj && Array.isArray(reasonObj.extra)) {
-      return reasonObj.extra.map((e: unknown) => {
-        if (typeof e === 'object' && e != null && 'text' in e) {
-          return (e as Record<string, unknown>).text ?? ''
-        }
-        return ''
-      }).join('')
+    if ('text' in reasonObj || 'extra' in reasonObj) {
+      return extractJsonText(reasonObj)
     }
     return JSON.stringify(reason)
   }

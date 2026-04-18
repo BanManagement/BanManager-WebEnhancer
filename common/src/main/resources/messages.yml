@@ -1,5 +1,8 @@
+# Message templates use MiniMessage formatting: https://docs.advntr.dev/minimessage/format.html
+# Placeholders use angle brackets, e.g. <pin>, <expires>, <seconds>
+
 messages:
   pin:
-    notify: '&6Your pin expires in [expires]'
-    pin: '[pin]'
-    rateLimited: '&cPlease wait [seconds] seconds before generating a new pin'
+    notify: '<gold>Your pin expires in <expires>'
+    pin: '<pin>'
+    rateLimited: '<red>Please wait <seconds> seconds before generating a new pin'

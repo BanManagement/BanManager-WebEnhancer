@@ -47,14 +47,6 @@ tasks.register<Copy>("copyBanManagerSpongeJar") {
     from(file("${banManagerDir.absolutePath}/sponge/build/libs/BanManagerSponge.jar"))
 }
 
-tasks.register<Copy>("copyBanManagerSponge7Jar") {
-    group = "verification"
-    description = "Copy BanManager Sponge7 shadow JAR to e2e/jars"
-
-    into(file("jars"))
-    from(file("${banManagerDir.absolutePath}/sponge-api7/build/libs/BanManagerSponge7.jar"))
-}
-
 tasks.register<Copy>("copyWebEnhancerBukkitJar") {
     group = "verification"
     description = "Copy WebEnhancer Bukkit JAR to e2e/jars"
@@ -95,18 +87,6 @@ tasks.register<Copy>("copyWebEnhancerSpongeJar") {
     into(file("jars"))
     from(project(":BanManagerWebEnhancerSponge").tasks.named("shadowJar")) {
         rename { "BanManagerWebEnhancerSponge.jar" }
-    }
-}
-
-tasks.register<Copy>("copyWebEnhancerSponge7Jar") {
-    group = "verification"
-    description = "Copy WebEnhancer Sponge7 JAR to e2e/jars"
-
-    dependsOn(":BanManagerWebEnhancerSponge7:shadowJar")
-
-    into(file("jars"))
-    from(project(":BanManagerWebEnhancerSponge7").tasks.named("shadowJar")) {
-        rename { "BanManagerWebEnhancerSponge7.jar" }
     }
 }
 
@@ -313,20 +293,6 @@ tasks.register("testSpongeAll") {
         dependsOn("testSponge_${versionSuffix}")
     }
 }
-
-// Sponge7 (Legacy API 7 / MC 1.12.2) E2E tests
-tasks.register("prepareSponge7Jars") {
-    group = "verification"
-    description = "Prepare Sponge7 (legacy) plugin JARs for E2E tests"
-    dependsOn("copyBanManagerSponge7Jar", "copyWebEnhancerSponge7Jar")
-}
-
-createPlatformTestTask(
-    "testSponge7",
-    "sponge7",
-    "prepareSponge7Jars",
-    "Run Sponge7 (legacy API 7 / MC 1.12.2) E2E tests in Docker"
-)
 
 // Velocity E2E tests
 tasks.register("prepareVelocityJars") {
@@ -543,34 +509,6 @@ tasks.register<Exec>("logsSponge") {
     commandLine("docker", "compose", "logs", "-f", "sponge")
 }
 
-// Sponge7 debug tasks
-tasks.register<Exec>("startSponge7") {
-    group = "verification"
-    description = "Start the Sponge7 (legacy) test server without running tests (for debugging)"
-
-    dependsOn("prepareSponge7Jars")
-
-    workingDir = file("platforms/sponge7")
-    commandLine("docker", "compose", "up", "-d", "mariadb", "sponge7")
-}
-
-tasks.register<Exec>("stopSponge7") {
-    group = "verification"
-    description = "Stop the Sponge7 test server"
-
-    workingDir = file("platforms/sponge7")
-    commandLine("docker", "compose", "down", "-v")
-    isIgnoreExitValue = true
-}
-
-tasks.register<Exec>("logsSponge7") {
-    group = "verification"
-    description = "Show Sponge7 server logs"
-
-    workingDir = file("platforms/sponge7")
-    commandLine("docker", "compose", "logs", "-f", "sponge7")
-}
-
 // Velocity debug tasks
 tasks.register<Exec>("startVelocity") {
     group = "verification"
@@ -629,7 +567,7 @@ tasks.register<Exec>("logsBungee") {
 
 tasks.named("clean") {
     doLast {
-        listOf("bukkit", "fabric", "sponge", "sponge7", "velocity", "bungee").forEach { platform ->
+        listOf("bukkit", "fabric", "sponge", "velocity", "bungee").forEach { platform ->
             ProcessBuilder("docker", "compose", "down", "-v", "--rmi", "local")
                 .directory(file("platforms/$platform"))
                 .inheritIO()
