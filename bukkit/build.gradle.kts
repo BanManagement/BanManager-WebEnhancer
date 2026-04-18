@@ -32,7 +32,7 @@ dependencies {
         exclude("junit", "junit")
     }
     compileOnly("org.apache.logging.log4j:log4j-core:2.17.0")
-    "shadeOnly"("org.bstats:bstats-bukkit:2.2.1")
+    "shadeOnly"("org.bstats:bstats-bukkit:3.2.1")
 }
 
 tasks.named<Copy>("processResources") {

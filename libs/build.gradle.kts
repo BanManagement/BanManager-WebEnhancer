@@ -4,8 +4,7 @@ applyLibrariesConfiguration()
 
 dependencies {
     "shade"("org.bouncycastle:bcprov-jdk15on:1.70")
-    "shade"("org.bouncycastle:bcpkix-jdk15on:1.70")
-    "shade"("com.google.guava:guava:17.0")
+    "shade"("com.google.guava:guava:33.4.8-jre")
 }
 
 tasks.withType<Jar>() {
@@ -17,15 +16,12 @@ tasks.named<ShadowJar>("jar") {
 
     dependencies {
         relocate("org.bouncycastle", "me.confuser.banmanager.webenhancer.common.bouncycastle") {
-            include(dependency("org.bouncycastle:bcpkix-jdk15on"))
             include(dependency("org.bouncycastle:bcprov-jdk15on"))
         }
 
         relocate("com.google.common", "me.confuser.banmanager.webenhancer.common.google.guava") {
             include(dependency("com.google.guava:guava"))
         }
-
-        include(dependency("org.bouncycastle:bcpkix-jdk15on"))
     }
 
     exclude("GradleStart**")

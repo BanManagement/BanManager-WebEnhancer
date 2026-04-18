@@ -29,7 +29,7 @@ dependencies {
     compileOnly("me.confuser.banmanager:BanManagerBungee:8.0.0-SNAPSHOT")
 
     compileOnly("net.md-5:bungeecord-api:1.21-R0.4")
-    "shadeOnly"("org.bstats:bstats-bungeecord:2.2.1")
+    "shadeOnly"("org.bstats:bstats-bungeecord:3.2.1")
 }
 
 tasks.named<Copy>("processResources") {
