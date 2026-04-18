@@ -79,7 +79,7 @@ dependencies {
     // 1.21.11 runtime support exists in BanManager, but public artifacts may lag behind;
     // compile against 1.21.4 API-compatible classes until 1.21.11 artifacts are published.
     val banManagerCompileMcVersion = if (minecraftVersion == "1.21.11") "1.21.4" else minecraftVersion
-    modCompileOnly("me.confuser.banmanager:BanManagerFabric-mc$banManagerCompileMcVersion:7.11.0-SNAPSHOT")
+    modCompileOnly("me.confuser.banmanager:BanManagerFabric-mc$banManagerCompileMcVersion:8.0.0-SNAPSHOT")
 }
 
 tasks.named<Copy>("processResources") {
