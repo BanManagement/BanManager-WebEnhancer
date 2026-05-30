@@ -1,20 +1,22 @@
 package me.confuser.banmanager.webenhancer.bungee;
 
 import lombok.Getter;
+import me.confuser.banmanager.bungee.BMBungeePlugin;
 import me.confuser.banmanager.bungee.BungeeScheduler;
 import me.confuser.banmanager.bungee.PluginLogger;
 import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
-import me.confuser.banmanager.webenhancer.bungee.BungeeCommand;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
-import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.bstats.bungeecord.Metrics;
-import me.confuser.banmanager.webenhancer.bungee.listeners.*;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 
 public class BungeePlugin extends Plugin {
@@ -29,25 +31,31 @@ public class BungeePlugin extends Plugin {
 
   @Override
   public void onEnable() {
+    BMBungeePlugin banManager = (BMBungeePlugin) getProxy().getPluginManager().getPlugin("BanManager");
+    if (banManager == null || banManager.getPlugin() == null) {
+      getLogger().severe("BanManager is not enabled — cannot start BanManager-WebEnhancer.");
+      return;
+    }
+
     PluginInfo pluginInfo;
     try {
       pluginInfo = setupConfigs();
     } catch (IOException e) {
-      e.printStackTrace();
+      getLogger().log(java.util.logging.Level.WARNING, "Failed to set up plugin configuration", e);
       return;
     }
 
     metrics = new Metrics(this, 14539);
-    plugin = new WebEnhancerPlugin(pluginInfo, new PluginLogger(getLogger()), getDataFolder(), new BungeeScheduler(this), new BungeeMetrics(metrics));
+    plugin = new WebEnhancerPlugin(pluginInfo, new PluginLogger(getLogger()), getDataFolder(),
+        new BungeeScheduler(this), new BungeeMetrics(metrics), banManager.getPlugin());
 
     try {
       plugin.enable();
     } catch (Exception e) {
-      e.printStackTrace();
+      getLogger().log(java.util.logging.Level.WARNING, "Failed to enable BanManager-WebEnhancer", e);
       return;
     }
 
-    setupListeners();
     setupCommands();
   }
 
@@ -100,13 +108,5 @@ public class BungeePlugin extends Plugin {
     }
 
     getLogger().info("Registered commands");
-  }
-
-  public void setupListeners() {
-    registerEvent(new BanListener(this));
-  }
-
-  private void registerEvent(Listener listener) {
-    getProxy().getPluginManager().registerListener(this, listener);
   }
 }

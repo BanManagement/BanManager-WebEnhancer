@@ -8,6 +8,7 @@ applyPlatformAndCoreConfiguration()
 dependencies {
     api(project(":BanManagerWebEnhancerLibs"))
 
+    api("me.confuser.banmanager:BanManagerAPI:8.0.0-SNAPSHOT")
     api("me.confuser.banmanager:BanManagerCommon:8.0.0-SNAPSHOT")
     api("me.confuser.banmanager.BanManagerLibs:BanManagerLibs:8.0.0-SNAPSHOT")
 

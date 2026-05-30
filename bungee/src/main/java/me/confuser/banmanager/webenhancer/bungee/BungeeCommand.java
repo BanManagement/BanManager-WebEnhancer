@@ -45,10 +45,11 @@ public class BungeeCommand extends Command implements TabExecutor {
   }
 
   private CommonSender getSender(CommandSender source) {
+    BanManagerPlugin banManagerPlugin = plugin.getPlugin().getBanManagerPlugin();
     if (source instanceof ProxiedPlayer) {
-      return new BungeePlayer((ProxiedPlayer) source, BanManagerPlugin.getInstance().getConfig().isOnlineMode());
+      return new BungeePlayer(banManagerPlugin, (ProxiedPlayer) source, banManagerPlugin.getConfig().isOnlineMode());
     } else {
-      return new BungeeSender(BanManagerPlugin.getInstance(), source);
+      return new BungeeSender(banManagerPlugin, source);
     }
   }
 

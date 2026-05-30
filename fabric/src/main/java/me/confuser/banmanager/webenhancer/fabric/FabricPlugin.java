@@ -13,12 +13,12 @@ import org.apache.logging.log4j.LogManager;
 import lombok.Getter;
 import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
+import me.confuser.banmanager.fabric.BMFabricPlugin;
 import me.confuser.banmanager.fabric.FabricScheduler;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
 import me.confuser.banmanager.fabric.FabricCommand;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
-import me.confuser.banmanager.webenhancer.fabric.listeners.EventListener;
 import me.confuser.banmanager.webenhancer.fabric.listeners.LogServerAppender;
 import me.confuser.banmanager.webenhancer.fabric.listeners.ReportListener;
 import net.fabricmc.api.DedicatedServerModInitializer;
@@ -41,27 +41,36 @@ public class FabricPlugin implements DedicatedServerModInitializer {
 
     @Override
     public void onInitializeServer() {
-        try {
-            pluginInfo = setupConfigs();
-        } catch (IOException e) {
-            e.printStackTrace();
+        BMFabricPlugin banManager = BMFabricPlugin.getInstance();
+        if (banManager == null || banManager.getPlugin() == null) {
+            LogManager.getLogger("BanManager-WebEnhancer").warn(
+                "BanManager is not enabled — cannot start BanManager-WebEnhancer.");
             return;
         }
 
-        scheduler = new FabricScheduler();
+        try {
+            pluginInfo = setupConfigs();
+        } catch (IOException e) {
+            LogManager.getLogger("BanManager-WebEnhancer").warn("Failed to set up plugin configuration", e);
+            return;
+        }
+
+        org.apache.logging.log4j.Logger log4j = LogManager.getLogger("BanManager-WebEnhancer");
+        scheduler = new FabricScheduler(log4j);
 
         plugin = new WebEnhancerPlugin(
             pluginInfo,
-            new PluginLogger(LogManager.getLogger("BanManager-WebEnhancer")),
+            new PluginLogger(log4j),
             getDataFolder(),
             scheduler,
-            new FabricMetrics()
+            new FabricMetrics(),
+            banManager.getPlugin()
         );
 
         try {
             plugin.enable();
         } catch (Exception e) {
-            e.printStackTrace();
+            LogManager.getLogger("BanManager-WebEnhancer").warn("Failed to enable BanManager-WebEnhancer", e);
             return;
         }
 
@@ -83,7 +92,7 @@ public class FabricPlugin implements DedicatedServerModInitializer {
 
     private void setupCommands() {
         for (CommonCommand cmd : plugin.getCommands()) {
-            new FabricCommand(cmd).register();
+            new FabricCommand(plugin.getBanManagerPlugin(), cmd).register();
         }
     }
 
@@ -153,7 +162,6 @@ public class FabricPlugin implements DedicatedServerModInitializer {
         ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addAppender(appender);
 
         new ReportListener(this);
-        new EventListener(plugin);
     }
 
     private InputStream getResourceAsStream(String resource) {

@@ -4,55 +4,68 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import me.confuser.banmanager.common.BanManagerPlugin;
 
+import me.confuser.banmanager.api.event.player.PlayerReportDeletedEvent;
+import me.confuser.banmanager.api.event.player.PlayerReportedEvent;
+import me.confuser.banmanager.api.event.player.PluginReloadedEvent;
+import me.confuser.banmanager.common.BanManagerPlugin;
 import me.confuser.banmanager.common.data.PlayerReportData;
 import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
-import me.confuser.banmanager.fabric.BanManagerEvents;
-import me.confuser.banmanager.fabric.BanManagerEvents.SilentValue;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
 import me.confuser.banmanager.webenhancer.common.data.ReportLogData;
 import me.confuser.banmanager.webenhancer.fabric.FabricPlugin;
 
+/**
+ * Bridges Fabric's report lifecycle into WebEnhancer storage.
+ *
+ * <p>Subscribes to the cross-platform {@link me.confuser.banmanager.api.event.EventBus}
+ * — the per-platform {@code PlayerDeniedEvent}/{@code PlayerBannedEvent}
+ * handlers that used to live here have been consolidated into
+ * {@link me.confuser.banmanager.webenhancer.common.listeners.CommonPlayerDeniedListener}.</p>
+ */
 public class ReportListener {
 
     private final FabricPlugin fabricPlugin;
+    private final BanManagerPlugin banManagerPlugin;
 
     public ReportListener(FabricPlugin fabricPlugin) {
         this.fabricPlugin = fabricPlugin;
+        this.banManagerPlugin = fabricPlugin.getPlugin().getBanManagerPlugin();
 
-        BanManagerEvents.PLAYER_REPORTED_EVENT.register(this::notifyOnReport);
-        BanManagerEvents.PLAYER_REPORT_DELETED_EVENT.register(this::reportDeleted);
+        var events = fabricPlugin.getPlugin().getBanManagerService().events();
+        events.subscribe(PlayerReportedEvent.class, this::notifyOnReport);
+        events.subscribe(PlayerReportDeletedEvent.class, this::reportDeleted);
+        events.subscribe(PluginReloadedEvent.class, e -> fabricPlugin.getPlugin().setupConfigs());
     }
 
-    private void notifyOnReport(PlayerReportData report, boolean silent) {
+    private void notifyOnReport(PlayerReportedEvent event) {
         List<LogData> logs;
         Queue<LogData> queue = fabricPlugin.getAppender().getQueue();
         synchronized (queue) {
             logs = new ArrayList<>(queue);
         }
 
-        final int reportId = report.getId();
+        final int reportId = event.report().id();
 
-        BanManagerPlugin.getInstance().getScheduler().runAsync(() -> {
+        banManagerPlugin.getScheduler().runAsync(() -> {
             try {
-                PlayerReportData reportReloaded = BanManagerPlugin.getInstance()
-                    .getPlayerReportStorage().queryForId(reportId);
+                PlayerReportData report = banManagerPlugin.getPlayerReportStorage().queryForId(reportId);
 
-                if (reportReloaded == null) return;
+                if (report == null) return;
 
                 for (LogData log : logs) {
                     fabricPlugin.getPlugin().getLogStorage().createIfNotExists(log);
-                    fabricPlugin.getPlugin().getReportLogStorage().create(new ReportLogData(reportReloaded, log));
+                    fabricPlugin.getPlugin().getReportLogStorage().create(new ReportLogData(report, log));
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                fabricPlugin.getPlugin().getLogger()
+                    .warning("Failed to attach report logs: " + e.getMessage());
             }
         });
     }
 
-    private void reportDeleted(PlayerReportData report) {
-        int id = report.getId();
+    private void reportDeleted(PlayerReportDeletedEvent event) {
+        int id = event.report().id();
 
         DeleteBuilder<ReportLogData, Integer> builder = fabricPlugin.getPlugin().getReportLogStorage().deleteBuilder();
 
@@ -60,7 +73,6 @@ public class ReportListener {
             builder.where().eq("report_id", id);
             builder.delete();
         } catch (SQLException e) {
-            e.printStackTrace();
             fabricPlugin.getPlugin().getLogger().warning("Failed to delete report associations for " + id);
         }
     }

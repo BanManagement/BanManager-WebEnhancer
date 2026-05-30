@@ -1,50 +1,54 @@
 package me.confuser.banmanager.webenhancer.bukkit.listeners;
 
-import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
-import me.confuser.banmanager.bukkit.api.events.PlayerBannedEvent;
-import me.confuser.banmanager.bukkit.api.events.PlayerReportDeletedEvent;
-import me.confuser.banmanager.bukkit.api.events.PlayerReportedEvent;
-import me.confuser.banmanager.bukkit.api.events.PlayerDeniedEvent;
-import me.confuser.banmanager.bukkit.api.events.PluginReloadedEvent;
-import me.confuser.banmanager.common.util.Message;
+import me.confuser.banmanager.api.event.player.PlayerReportDeletedEvent;
+import me.confuser.banmanager.api.event.player.PlayerReportedEvent;
+import me.confuser.banmanager.api.event.player.PluginReloadedEvent;
+import me.confuser.banmanager.common.BanManagerPlugin;
 import me.confuser.banmanager.common.data.PlayerReportData;
+import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
 import me.confuser.banmanager.webenhancer.bukkit.BukkitPlugin;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
 import me.confuser.banmanager.webenhancer.common.data.ReportLogData;
-import me.confuser.banmanager.webenhancer.common.listeners.CommonPlayerDeniedListener;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import me.confuser.banmanager.common.BanManagerPlugin;
 
-public class ReportListener implements Listener {
+/**
+ * Bridges Bukkit's report lifecycle into WebEnhancer storage.
+ *
+ * <p>Subscribes to the cross-platform {@link me.confuser.banmanager.api.event.EventBus}
+ * — the per-platform {@code PlayerDeniedEvent}/{@code PlayerBannedEvent}
+ * handlers that used to live here have been consolidated into
+ * {@link me.confuser.banmanager.webenhancer.common.listeners.CommonPlayerDeniedListener}.</p>
+ */
+public class ReportListener {
   private final BukkitPlugin plugin;
-  private CommonPlayerDeniedListener listener;
+  private final BanManagerPlugin banManagerPlugin;
 
   public ReportListener(BukkitPlugin plugin) {
     this.plugin = plugin;
-    this.listener = new CommonPlayerDeniedListener(plugin.getPlugin());
+    this.banManagerPlugin = plugin.getPlugin().getBanManagerPlugin();
+
+    var events = plugin.getPlugin().getBanManagerService().events();
+    events.subscribe(PlayerReportedEvent.class, this::notifyOnReport);
+    events.subscribe(PlayerReportDeletedEvent.class, this::reportDeleted);
+    events.subscribe(PluginReloadedEvent.class, e -> plugin.getPlugin().setupConfigs());
   }
 
-  @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-  public void notifyOnReport(PlayerReportedEvent event) {
+  private void notifyOnReport(PlayerReportedEvent event) {
     List<LogData> logs;
     Queue<LogData> queue = plugin.getAppender().getQueue();
     synchronized (queue) {
       logs = new ArrayList<>(queue);
     }
 
-    final int reportId = event.getReport().getId();
+    final int reportId = event.report().id();
 
-    BanManagerPlugin.getInstance().getScheduler().runAsync(() -> {
+    banManagerPlugin.getScheduler().runAsync(() -> {
       try {
-        PlayerReportData report = BanManagerPlugin.getInstance()
-            .getPlayerReportStorage().queryForId(reportId);
+        PlayerReportData report = banManagerPlugin.getPlayerReportStorage().queryForId(reportId);
 
         if (report == null) return;
 
@@ -53,14 +57,13 @@ public class ReportListener implements Listener {
           plugin.getPlugin().getReportLogStorage().create(new ReportLogData(report, log));
         }
       } catch (SQLException e) {
-        e.printStackTrace();
+        plugin.getPlugin().getLogger().warning("Failed to attach report logs: " + e.getMessage());
       }
     });
   }
 
-  @EventHandler
-  public void reportDeleted(PlayerReportDeletedEvent event) {
-    int id = event.getReport().getId();
+  private void reportDeleted(PlayerReportDeletedEvent event) {
+    int id = event.report().id();
 
     DeleteBuilder<ReportLogData, Integer> builder = plugin.getPlugin().getReportLogStorage().deleteBuilder();
 
@@ -68,29 +71,7 @@ public class ReportListener implements Listener {
       builder.where().eq("report_id", id);
       builder.delete();
     } catch (SQLException e) {
-      e.printStackTrace();
       plugin.getLogger().warning("Failed to delete report associations for " + id);
     }
-  }
-
-  @EventHandler
-  public void onDeny(PlayerDeniedEvent event) {
-    listener.handlePin(event.getPlayer(), event.getMessage());
-  }
-
-  @EventHandler(priority = EventPriority.MONITOR)
-  public void onBanned(PlayerBannedEvent event) {
-    try {
-      Message kickMessage = event.getKickMessage();
-      if (kickMessage != null) {
-        listener.handlePin(event.getBan().getPlayer(), kickMessage);
-      }
-    } catch (NoSuchMethodError ignored) {
-    }
-  }
-
-  @EventHandler
-  public void onReload(PluginReloadedEvent event) {
-    plugin.getPlugin().setupConfigs();
   }
 }
