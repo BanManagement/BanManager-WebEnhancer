@@ -1,10 +1,10 @@
 package me.confuser.banmanager.webenhancer.common.configs;
 
-import me.confuser.banmanager.common.ormlite.table.DatabaseTableConfig;
 import lombok.Getter;
 import me.confuser.banmanager.common.BanManagerPlugin;
 import me.confuser.banmanager.common.CommonLogger;
 import me.confuser.banmanager.common.configs.Config;
+import me.confuser.banmanager.common.ormlite.table.DatabaseTableConfig;
 import me.confuser.banmanager.webenhancer.common.data.LogData;
 import me.confuser.banmanager.webenhancer.common.data.PlayerPinData;
 import me.confuser.banmanager.webenhancer.common.data.ReportLogData;
@@ -18,11 +18,13 @@ import java.util.regex.Pattern;
 
 public class DefaultConfig extends Config {
 
-  private static HashMap<String, Class> tables = new HashMap<String, Class>() {{
+  private static final HashMap<String, Class<?>> TABLES = new HashMap<>() {{
     put("logs", LogData.class);
     put("reportLogs", ReportLogData.class);
     put("playerPins", PlayerPinData.class);
   }};
+
+  private final BanManagerPlugin banManagerPlugin;
 
   @Getter
   private ArrayList<Pattern> patterns;
@@ -31,14 +33,15 @@ public class DefaultConfig extends Config {
   @Getter
   private int amount;
 
-  public DefaultConfig(File dataFolder, CommonLogger logger) {
+  public DefaultConfig(File dataFolder, CommonLogger logger, BanManagerPlugin banManagerPlugin) {
     super(dataFolder, "config.yml", logger);
+    this.banManagerPlugin = banManagerPlugin;
   }
 
   @Override
   public void afterLoad() {
-    for (Map.Entry<String, Class> entry : tables.entrySet()) {
-      BanManagerPlugin.getInstance().getConfig().getLocalDb()
+    for (Map.Entry<String, Class<?>> entry : TABLES.entrySet()) {
+      banManagerPlugin.getConfig().getLocalDb()
           .addTable(entry.getKey(), new DatabaseTableConfig<>(entry.getValue(), conf.getString("tables." + entry.getKey()), null));
     }
 

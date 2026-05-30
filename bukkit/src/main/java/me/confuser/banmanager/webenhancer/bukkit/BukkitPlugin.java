@@ -1,19 +1,20 @@
 package me.confuser.banmanager.webenhancer.bukkit;
 
 import lombok.Getter;
+import me.confuser.banmanager.bukkit.BMBukkitPlugin;
 import me.confuser.banmanager.bukkit.BukkitCommand;
 import me.confuser.banmanager.bukkit.BukkitScheduler;
 import me.confuser.banmanager.bukkit.PluginLogger;
-import org.bstats.bukkit.Metrics;
 import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
+import me.confuser.banmanager.webenhancer.bukkit.listeners.LogServerAppender;
 import me.confuser.banmanager.webenhancer.bukkit.listeners.ReportListener;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
-import me.confuser.banmanager.webenhancer.bukkit.listeners.LogServerAppender;
 import org.apache.logging.log4j.LogManager;
-import org.bukkit.event.Listener;
+import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -35,23 +36,31 @@ public class BukkitPlugin extends JavaPlugin {
 
   @Override
   public void onEnable() {
+    BMBukkitPlugin banManager = (BMBukkitPlugin) Bukkit.getPluginManager().getPlugin("BanManager");
+    if (banManager == null || banManager.getPlugin() == null) {
+      getLogger().severe("BanManager is not enabled — cannot start BanManager-WebEnhancer.");
+      getPluginLoader().disablePlugin(this);
+      return;
+    }
+
     PluginInfo pluginInfo;
     try {
       pluginInfo = setupConfigs();
     } catch (IOException e) {
       getPluginLoader().disablePlugin(this);
-      e.printStackTrace();
+      getLogger().log(java.util.logging.Level.WARNING, "Failed to set up plugin configuration", e);
       return;
     }
 
     metrics = new Metrics(this, 8838);
-    plugin = new WebEnhancerPlugin(pluginInfo, new PluginLogger(getLogger()), getDataFolder(), new BukkitScheduler(this), new BukkitMetrics(metrics));
+    plugin = new WebEnhancerPlugin(pluginInfo, new PluginLogger(getLogger()), getDataFolder(),
+        new BukkitScheduler(this), new BukkitMetrics(metrics), banManager.getPlugin());
 
     try {
       plugin.enable();
     } catch (Exception e) {
       getPluginLoader().disablePlugin(this);
-      e.printStackTrace();
+      getLogger().log(java.util.logging.Level.WARNING, "Failed to enable BanManager-WebEnhancer", e);
       return;
     }
 
@@ -102,7 +111,7 @@ public class BukkitPlugin extends JavaPlugin {
   public void setupCommands() {
     for (CommonCommand cmd : plugin.getCommands()) {
       try {
-        getCommand(cmd.getCommandName()).setExecutor(new BukkitCommand(cmd));
+        getCommand(cmd.getCommandName()).setExecutor(new BukkitCommand(plugin.getBanManagerPlugin(), cmd));
       } catch (NullPointerException e) {
         plugin.getLogger().severe("Failed to register /" + cmd.getCommandName() + " command");
       }
@@ -113,10 +122,6 @@ public class BukkitPlugin extends JavaPlugin {
     appender = new LogServerAppender(plugin);
     ((org.apache.logging.log4j.core.Logger) LogManager.getRootLogger()).addAppender(appender);
 
-    registerEvent(new ReportListener(this));
-  }
-
-  private void registerEvent(Listener listener) {
-    getServer().getPluginManager().registerEvents(listener, this);
+    new ReportListener(this);
   }
 }

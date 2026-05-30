@@ -1,15 +1,14 @@
 package me.confuser.banmanager.webenhancer.common.storage;
 
-import me.confuser.banmanager.webenhancer.common.google.guava.cache.Cache;
-import me.confuser.banmanager.webenhancer.common.google.guava.cache.CacheBuilder;
-import me.confuser.banmanager.common.ormlite.dao.BaseDaoImpl;
-import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
-import me.confuser.banmanager.common.ormlite.support.ConnectionSource;
-import me.confuser.banmanager.common.ormlite.table.DatabaseTableConfig;
-import me.confuser.banmanager.common.ormlite.table.TableUtils;
 import me.confuser.banmanager.common.BanManagerPlugin;
 import me.confuser.banmanager.common.data.PlayerData;
+import me.confuser.banmanager.common.ormlite.dao.BaseDaoImpl;
+import me.confuser.banmanager.common.ormlite.stmt.DeleteBuilder;
+import me.confuser.banmanager.common.ormlite.table.DatabaseTableConfig;
+import me.confuser.banmanager.common.ormlite.table.TableUtils;
 import me.confuser.banmanager.webenhancer.common.data.PlayerPinData;
+import me.confuser.banmanager.webenhancer.common.google.guava.cache.Cache;
+import me.confuser.banmanager.webenhancer.common.google.guava.cache.CacheBuilder;
 
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
@@ -19,18 +18,18 @@ import java.util.concurrent.TimeUnit;
 public class PlayerPinStorage extends BaseDaoImpl<PlayerPinData, Integer> {
   private static final int RATE_LIMIT_SECONDS = 30;
 
-  private Cache<UUID, Long> rateLimitCache = CacheBuilder.newBuilder()
+  private final Cache<UUID, Long> rateLimitCache = CacheBuilder.newBuilder()
       .expireAfterWrite(RATE_LIMIT_SECONDS, TimeUnit.SECONDS)
       .maximumSize(200)
       .build();
 
-  public PlayerPinStorage(ConnectionSource connection) throws SQLException {
-    super(connection, (DatabaseTableConfig<PlayerPinData>) BanManagerPlugin.getInstance().getConfig()
-        .getLocalDb()
-        .getTable("playerPins"));
+  @SuppressWarnings("unchecked")
+  public PlayerPinStorage(BanManagerPlugin banManagerPlugin) throws SQLException {
+    super(banManagerPlugin.getLocalConn(),
+        (DatabaseTableConfig<PlayerPinData>) banManagerPlugin.getConfig().getLocalDb().getTable("playerPins"));
 
     if (!this.isTableExists()) {
-      TableUtils.createTable(connection, tableConfig);
+      TableUtils.createTable(banManagerPlugin.getLocalConn(), tableConfig);
     }
   }
 

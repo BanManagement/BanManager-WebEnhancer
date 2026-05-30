@@ -5,6 +5,7 @@ import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Dependency;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.PluginContainer;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
 import lombok.Getter;
@@ -13,12 +14,11 @@ import me.confuser.banmanager.common.commands.CommonCommand;
 import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
-import me.confuser.banmanager.velocity.Listener;
+import me.confuser.banmanager.velocity.BMVelocityPlugin;
 import me.confuser.banmanager.velocity.PluginLogger;
 import me.confuser.banmanager.velocity.VelocityScheduler;
 import me.confuser.banmanager.webenhancer.VelocityCommand;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
-import me.confuser.banmanager.webenhancer.velocity.listener.BanListener;
 import org.bstats.velocity.Metrics;
 import org.slf4j.Logger;
 
@@ -67,26 +67,33 @@ public class VelocityPlugin {
 
         @Subscribe
         public void onProxyInitialisation(ProxyInitializeEvent event) {
+                PluginContainer container = server.getPluginManager().getPlugin("banmanager").orElse(null);
+                if (container == null || !(container.getInstance().orElse(null) instanceof BMVelocityPlugin banManager)
+                        || banManager.getPlugin() == null) {
+                        logger.error("BanManager is not enabled — cannot start BanManager-WebEnhancer.");
+                        return;
+                }
+
                 PluginInfo pluginInfo;
                 try {
                         pluginInfo = setupConfigs();
                 } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.error("Failed to set up plugin configuration", e);
                         return;
                 }
 
-                plugin = new WebEnhancerPlugin(pluginInfo, new PluginLogger(logger), dataDirectory, new VelocityScheduler(this, server), new VelocityMetrics(metrics.make(this, 14539)));
+                plugin = new WebEnhancerPlugin(pluginInfo, new PluginLogger(logger), dataDirectory,
+                        new VelocityScheduler(this, server), new VelocityMetrics(metrics.make(this, 14539)),
+                        banManager.getPlugin());
 
                 try {
                         plugin.enable();
                 } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.error("Failed to enable BanManager-WebEnhancer", e);
                         return;
                 }
 
-                setupListeners();
                 setupCommands();
-
         }
 
         private PluginInfo setupConfigs() throws IOException {
@@ -144,11 +151,4 @@ public class VelocityPlugin {
                 logger.info("Registered commands");
         }
 
-        public void setupListeners() {
-                registerEvent(new BanListener(this));
-        }
-
-        private void registerEvent(Listener listener) {
-                server.getEventManager().register(this, listener);
-        }
 }

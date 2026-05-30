@@ -8,6 +8,7 @@ import me.confuser.banmanager.common.configs.PluginInfo;
 import me.confuser.banmanager.common.configuration.ConfigurationSection;
 import me.confuser.banmanager.common.configuration.InvalidConfigurationException;
 import me.confuser.banmanager.common.configuration.file.YamlConfiguration;
+import me.confuser.banmanager.sponge.BMSpongePlugin;
 import me.confuser.banmanager.sponge.PluginLogger;
 import me.confuser.banmanager.sponge.SpongeScheduler;
 import me.confuser.banmanager.webenhancer.common.WebEnhancerPlugin;
@@ -24,6 +25,8 @@ import org.spongepowered.api.event.lifecycle.StartedEngineEvent;
 import org.spongepowered.api.event.lifecycle.StoppingEngineEvent;
 import org.spongepowered.plugin.PluginContainer;
 import org.spongepowered.plugin.builtin.jvm.Plugin;
+
+import java.util.Optional;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,6 +69,14 @@ public class SpongePlugin {
 
     @Listener(order = Order.LATE)
     public void onServerStarted(StartedEngineEvent<Server> event) {
+        Optional<PluginContainer> banManagerContainer = Sponge.pluginManager().plugin("banmanager");
+        if (banManagerContainer.isEmpty()
+            || !(banManagerContainer.get().instance() instanceof BMSpongePlugin banManager)
+            || banManager.getPlugin() == null) {
+            this.logger.severe("BanManager is not enabled — cannot start BanManager-WebEnhancer.");
+            return;
+        }
+
         this.scheduler = new SpongeScheduler(pluginContainer);
 
         PluginInfo pluginInfo;
@@ -73,11 +84,11 @@ public class SpongePlugin {
             pluginInfo = setupConfigs();
         } catch (IOException e) {
             this.logger.severe("Failed to setup configs: " + e.getMessage());
-            e.printStackTrace();
             return;
         }
 
-        this.plugin = new WebEnhancerPlugin(pluginInfo, this.logger, dataFolder.toFile(), scheduler, new SpongeMetrics());
+        this.plugin = new WebEnhancerPlugin(pluginInfo, this.logger, dataFolder.toFile(),
+            scheduler, new SpongeMetrics(), banManager.getPlugin());
 
         try {
             plugin.enable();
@@ -173,7 +184,7 @@ public class SpongePlugin {
 
         scheduler.runAsyncRepeating(() -> fileLogReader.readNewEntries(), Duration.ofSeconds(1), Duration.ofSeconds(1));
 
-        Sponge.eventManager().registerListeners(pluginContainer, new ReportListener(this));
+        new ReportListener(this);
     }
 
     private String loadLogFilePath() {

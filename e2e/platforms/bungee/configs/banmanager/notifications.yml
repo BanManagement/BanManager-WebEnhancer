@@ -1,0 +1,59 @@
+# Notifications Configuration
+# Controls how punishment notifications are delivered to staff and players
+staff:
+  ban:
+    chat: true
+    actionbar: false
+    title: false
+    sound: entity.experience_orb.pickup
+    soundVolume: 1.0
+    soundPitch: 1.0
+  tempban:
+    chat: true
+    actionbar: false
+    title: false
+    sound: entity.experience_orb.pickup
+    soundVolume: 1.0
+    soundPitch: 1.0
+  mute:
+    chat: true
+    actionbar: false
+    title: false
+    sound: ''
+    soundVolume: 1.0
+    soundPitch: 1.0
+  tempmute:
+    chat: true
+    actionbar: false
+    title: false
+    sound: ''
+    soundVolume: 1.0
+    soundPitch: 1.0
+  warn:
+    chat: true
+    actionbar: false
+    title: false
+    sound: entity.experience_orb.pickup
+    soundVolume: 1.0
+    soundPitch: 1.0
+  report:
+    chat: true
+    actionbar: false
+    title: false
+    sound: block.note_block.pling
+    soundVolume: 1.0
+    soundPitch: 1.0
+  duplicateIp:
+    chat: true
+    actionbar: false
+    title: false
+    sound: ''
+    soundVolume: 1.0
+    soundPitch: 1.0
+player:
+  muted:
+    actionbar: true
+  warned:
+    sound: entity.villager.no
+    soundVolume: 1.0
+    soundPitch: 1.0

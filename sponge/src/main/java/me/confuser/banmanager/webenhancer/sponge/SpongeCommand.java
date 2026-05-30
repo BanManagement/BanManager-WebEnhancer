@@ -88,11 +88,12 @@ public class SpongeCommand {
     }
 
     private CommonSender getSender(CommandCause cause) {
+        BanManagerPlugin banManager = plugin.getBanManagerPlugin();
         Object root = cause.root();
         if (root instanceof ServerPlayer) {
-            return new SpongePlayer((ServerPlayer) root, BanManagerPlugin.getInstance().getConfig().isOnlineMode());
+            return new SpongePlayer(banManager, (ServerPlayer) root, banManager.getConfig().isOnlineMode());
         } else {
-            return new SpongeSender(BanManagerPlugin.getInstance(), cause);
+            return new SpongeSender(banManager, cause);
         }
     }
 }
